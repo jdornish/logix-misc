@@ -1,0 +1,71 @@
+﻿<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<!--Eaton UPS Data from SNMP-->
+<RSLogix5000Content SchemaRevision="1.0" SoftwareRevision="32.04" TargetName="SLO_Eaton_UPS_Data" TargetType="DataType" ContainsContext="true" Owner="J. Dornish" ExportDate="Fri Jan 07 08:11:03 2022" ExportOptions="References NoRawData L5KData DecoratedData Context Dependencies ForceProtectedEncoding AllProjDocTrans">
+<Controller Use="Context" Name="EatonSNMP">
+<DataTypes Use="Context">
+<DataType Use="Target" Name="SLO_Eaton_UPS_Data" Family="NoFamily" Class="User">
+<Description>
+<![CDATA[Eaton UPS Data from SNMP]]>
+</Description>
+<Members>
+<Member Name="Input_Voltage" DataType="INT" Dimension="0" Radix="Decimal" Hidden="false" ExternalAccess="Read/Write">
+<Description>
+<![CDATA[Input Voltage]]>
+</Description>
+</Member>
+<Member Name="Battery_Capacity" DataType="INT" Dimension="0" Radix="Decimal" Hidden="false" ExternalAccess="Read/Write">
+<Description>
+<![CDATA[Battery Capacity %]]>
+</Description>
+</Member>
+<Member Name="Input_Frequency" DataType="REAL" Dimension="0" Radix="Float" Hidden="false" ExternalAccess="Read/Write">
+<Description>
+<![CDATA[Input Frequency]]>
+</Description>
+</Member>
+<Member Name="Battery_Runtime_Remain" DataType="REAL" Dimension="0" Radix="Float" Hidden="false" ExternalAccess="Read/Write">
+<Description>
+<![CDATA[Battery Runtime Remaining (Mins)]]>
+</Description>
+</Member>
+<Member Name="Alarm_Count" DataType="INT" Dimension="0" Radix="Decimal" Hidden="false" ExternalAccess="Read/Write">
+<Description>
+<![CDATA[Number of Current Alarms]]>
+</Description>
+</Member>
+<Member Name="ZZZZZZZZZZSLO_Eaton_5" DataType="SINT" Dimension="0" Radix="Decimal" Hidden="true" ExternalAccess="Read/Write"/>
+<Member Name="On_Battery_Alarm" DataType="BIT" Dimension="0" Radix="Decimal" Hidden="false" Target="ZZZZZZZZZZSLO_Eaton_5" BitNumber="0" ExternalAccess="Read/Write">
+<Description>
+<![CDATA[UPS On Battery]]>
+</Description>
+</Member>
+<Member Name="Low_Battery_Alarm" DataType="BIT" Dimension="0" Radix="Decimal" Hidden="false" Target="ZZZZZZZZZZSLO_Eaton_5" BitNumber="1" ExternalAccess="Read/Write">
+<Description>
+<![CDATA[UPS Low Battery]]>
+</Description>
+</Member>
+<Member Name="Output_Overload_Alarm" DataType="BIT" Dimension="0" Radix="Decimal" Hidden="false" Target="ZZZZZZZZZZSLO_Eaton_5" BitNumber="2" ExternalAccess="Read/Write">
+<Description>
+<![CDATA[UPS Output Overload]]>
+</Description>
+</Member>
+<Member Name="Internal_Failure_Alarm" DataType="BIT" Dimension="0" Radix="Decimal" Hidden="false" Target="ZZZZZZZZZZSLO_Eaton_5" BitNumber="3" ExternalAccess="Read/Write">
+<Description>
+<![CDATA[UPS  Internal Failure]]>
+</Description>
+</Member>
+<Member Name="Temp_Bad" DataType="BIT" Dimension="0" Radix="Decimal" Hidden="false" Target="ZZZZZZZZZZSLO_Eaton_5" BitNumber="4" ExternalAccess="Read/Write">
+<Description>
+<![CDATA[UPS Ambient Temp Bad]]>
+</Description>
+</Member>
+<Member Name="COMM_Fault" DataType="BIT" Dimension="0" Radix="Decimal" Hidden="false" Target="ZZZZZZZZZZSLO_Eaton_5" BitNumber="5" ExternalAccess="Read/Write">
+<Description>
+<![CDATA[UPS Communications Fault]]>
+</Description>
+</Member>
+</Members>
+</DataType>
+</DataTypes>
+</Controller>
+</RSLogix5000Content>

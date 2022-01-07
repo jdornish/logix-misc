@@ -1,0 +1,1606 @@
+﻿<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<!--Builds an SNMP v1 Get packet.
+
+Requires SLO_SNMP_Request_Data input
+Builds packet into SLO_Socket_WriteParams for output to Socket Write.-->
+<RSLogix5000Content SchemaRevision="1.0" SoftwareRevision="32.04" TargetName="SLO_SNMP_Packet_Build" TargetType="AddOnInstructionDefinition" TargetRevision="1.1 " TargetLastEdited="2022-01-07T16:07:38.099Z" ContainsContext="true" Owner="J. Dornish" ExportDate="Fri Jan 07 08:09:58 2022" ExportOptions="References NoRawData L5KData DecoratedData Context Dependencies ForceProtectedEncoding AllProjDocTrans">
+<Controller Use="Context" Name="EatonSNMP">
+<DataTypes Use="Context">
+</DataTypes>
+<AddOnInstructionDefinitions Use="Context">
+<AddOnInstructionDefinition Use="Target" Name="SLO_SNMP_Packet_Build" Revision="1.1" Vendor="J. Dornish" ExecutePrescan="false" ExecutePostscan="false" ExecuteEnableInFalse="false" CreatedDate="2019-08-21T16:57:57.087Z" CreatedBy="Not Available" EditedDate="2022-01-07T16:07:38.099Z" EditedBy="Not Available"
+ SoftwareRevision="v32.04">
+<Description>
+<![CDATA[Builds an SNMP v1 Get packet.
+
+Requires SLO_SNMP_Request_Data input
+Builds packet into SLO_Socket_WriteParams for output to Socket Write.]]>
+</Description>
+<RevisionNote>
+<![CDATA[v1.1 - Fix unsigned - signed conversion fault in SNMP PDU creation
+
+v1.0 - by JDornish.
+Builds an SNMP packet from parameters.
+Currently supports SNMP v1, and Get-Next packets]]>
+</RevisionNote>
+<AdditionalHelpText>
+<![CDATA[2019 by Jason Dornish
+
+Note: 
+This block may not output standards complaint SNMP traffic.  It SHOULD, but this has not been fully tested.
+Max OID segment value is 268435456 (4 Byte 7-bit number), due to DINT limitations.  Hopefully this will not be an issue.
+
+This block is released under the MIT license.]]>
+</AdditionalHelpText>
+<Parameters>
+<Parameter Name="EnableIn" TagType="Base" DataType="BOOL" Usage="Input" Radix="Decimal" Required="false" Visible="false" ExternalAccess="Read Only">
+<Description>
+<![CDATA[Enable Input - System Defined Parameter]]>
+</Description>
+</Parameter>
+<Parameter Name="EnableOut" TagType="Base" DataType="BOOL" Usage="Output" Radix="Decimal" Required="false" Visible="false" ExternalAccess="Read Only">
+<Description>
+<![CDATA[Enable Output - System Defined Parameter]]>
+</Description>
+</Parameter>
+<Parameter Name="Packet" TagType="Base" DataType="SINT" Dimensions="484" Usage="InOut" Radix="Hex" Required="true" Visible="true" Constant="false">
+<Description>
+<![CDATA[SNMP Packet to build (Socket_WriteParams.Buf)]]>
+</Description>
+</Parameter>
+<Parameter Name="BufLen" TagType="Base" DataType="DINT" Usage="Output" Radix="Decimal" Required="true" Visible="true" ExternalAccess="Read Only">
+<Description>
+<![CDATA[SNMP Packet Length (Socket_WriteParams.BufLen)]]>
+</Description>
+<DefaultData Format="L5K">
+<![CDATA[0]]>
+</DefaultData>
+<DefaultData Format="Decorated">
+<DataValue DataType="DINT" Radix="Decimal" Value="0"/>
+</DefaultData>
+</Parameter>
+<Parameter Name="Community" TagType="Base" DataType="STRING" Usage="InOut" Required="true" Visible="true" Constant="false">
+<Description>
+<![CDATA[SNMP String (ex: public)]]>
+</Description>
+</Parameter>
+<Parameter Name="OID" TagType="Base" DataType="STRING" Usage="InOut" Required="true" Visible="true" Constant="false">
+<Description>
+<![CDATA[OID to Request (ex: 1.3.1.x.x.x.)]]>
+</Description>
+</Parameter>
+<Parameter Name="IP_Address_In" TagType="Base" DataType="STRING" Usage="InOut" Required="true" Visible="true" Constant="false">
+<Description>
+<![CDATA[Target IP Address in Numerical Format]]>
+</Description>
+</Parameter>
+<Parameter Name="RequestID" TagType="Base" DataType="INT" Usage="Input" Radix="Decimal" Required="true" Visible="true" ExternalAccess="Read/Write">
+<Description>
+<![CDATA[SNMP Request ID]]>
+</Description>
+<DefaultData Format="L5K">
+<![CDATA[0]]>
+</DefaultData>
+<DefaultData Format="Decorated">
+<DataValue DataType="INT" Radix="Decimal" Value="0"/>
+</DefaultData>
+</Parameter>
+<Parameter Name="IP_Address_Out" TagType="Base" DataType="DINT" Usage="Output" Radix="Decimal" Required="true" Visible="true" ExternalAccess="Read Only">
+<Description>
+<![CDATA[Target IP Address in Hex Format (Socket_WriteParams.ToAddr.Addr)]]>
+</Description>
+<DefaultData Format="L5K">
+<![CDATA[0]]>
+</DefaultData>
+<DefaultData Format="Decorated">
+<DataValue DataType="DINT" Radix="Decimal" Value="0"/>
+</DefaultData>
+</Parameter>
+<Parameter Name="IP_Address_Invalid" TagType="Base" DataType="BOOL" Usage="Output" Radix="Decimal" Required="false" Visible="false" ExternalAccess="Read Only">
+<Description>
+<![CDATA[Target IP Address is Invalid]]>
+</Description>
+<DefaultData Format="L5K">
+<![CDATA[0]]>
+</DefaultData>
+<DefaultData Format="Decorated">
+<DataValue DataType="BOOL" Radix="Decimal" Value="0"/>
+</DefaultData>
+</Parameter>
+<Parameter Name="OID_Invalid" TagType="Base" DataType="BOOL" Usage="Output" Radix="Decimal" Required="false" Visible="false" ExternalAccess="Read Only">
+<Description>
+<![CDATA[OID Input is Invalid]]>
+</Description>
+<DefaultData Format="L5K">
+<![CDATA[0]]>
+</DefaultData>
+<DefaultData Format="Decorated">
+<DataValue DataType="BOOL" Radix="Decimal" Value="0"/>
+</DefaultData>
+</Parameter>
+<Parameter Name="RequestID_Invalid" TagType="Base" DataType="BOOL" Usage="Output" Radix="Decimal" Required="false" Visible="false" ExternalAccess="Read Only">
+<Description>
+<![CDATA[Request ID is Invalid]]>
+</Description>
+<DefaultData Format="L5K">
+<![CDATA[0]]>
+</DefaultData>
+<DefaultData Format="Decorated">
+<DataValue DataType="BOOL" Radix="Decimal" Value="0"/>
+</DefaultData>
+</Parameter>
+</Parameters>
+<LocalTags>
+<LocalTag Name="I" DataType="INT" Radix="Decimal" ExternalAccess="None">
+<Description>
+<![CDATA[Internal Iterator #1]]>
+</Description>
+<DefaultData Format="L5K">
+<![CDATA[0]]>
+</DefaultData>
+<DefaultData Format="Decorated">
+<DataValue DataType="INT" Radix="Decimal" Value="0"/>
+</DefaultData>
+</LocalTag>
+<LocalTag Name="J" DataType="INT" Radix="Decimal" ExternalAccess="None">
+<Description>
+<![CDATA[Internal Iterator #2]]>
+</Description>
+<DefaultData Format="L5K">
+<![CDATA[0]]>
+</DefaultData>
+<DefaultData Format="Decorated">
+<DataValue DataType="INT" Radix="Decimal" Value="0"/>
+</DefaultData>
+</LocalTag>
+<LocalTag Name="CurrentByte" DataType="INT" Radix="Decimal" ExternalAccess="None">
+<Description>
+<![CDATA[Currently Used Byte]]>
+</Description>
+<DefaultData Format="L5K">
+<![CDATA[0]]>
+</DefaultData>
+<DefaultData Format="Decorated">
+<DataValue DataType="INT" Radix="Decimal" Value="0"/>
+</DefaultData>
+</LocalTag>
+<LocalTag Name="PDU_Length_Index" DataType="INT" Radix="Decimal" ExternalAccess="None">
+<Description>
+<![CDATA[PDU Length Byte Location Index]]>
+</Description>
+<DefaultData Format="L5K">
+<![CDATA[0]]>
+</DefaultData>
+<DefaultData Format="Decorated">
+<DataValue DataType="INT" Radix="Decimal" Value="0"/>
+</DefaultData>
+</LocalTag>
+<LocalTag Name="IP_Address_Invalid_Flag" DataType="BOOL" Radix="Decimal" ExternalAccess="None">
+<Description>
+<![CDATA[Internal Use for flagging invalid IP addresses]]>
+</Description>
+<DefaultData Format="L5K">
+<![CDATA[0]]>
+</DefaultData>
+<DefaultData Format="Decorated">
+<DataValue DataType="BOOL" Radix="Decimal" Value="0"/>
+</DefaultData>
+</LocalTag>
+<LocalTag Name="VarBindList_Length_Index" DataType="INT" Radix="Decimal" ExternalAccess="None">
+<Description>
+<![CDATA[VarBin Listd Length Byte Location Index]]>
+</Description>
+<DefaultData Format="L5K">
+<![CDATA[0]]>
+</DefaultData>
+<DefaultData Format="Decorated">
+<DataValue DataType="INT" Radix="Decimal" Value="0"/>
+</DefaultData>
+</LocalTag>
+<LocalTag Name="VarBind_Length_Index" DataType="INT" Radix="Decimal" ExternalAccess="None">
+<Description>
+<![CDATA[VarBind Length Byte Location Index]]>
+</Description>
+<DefaultData Format="L5K">
+<![CDATA[0]]>
+</DefaultData>
+<DefaultData Format="Decorated">
+<DataValue DataType="INT" Radix="Decimal" Value="0"/>
+</DefaultData>
+</LocalTag>
+<LocalTag Name="TEMP_INT_1" DataType="INT" Radix="Decimal" ExternalAccess="None">
+<Description>
+<![CDATA[Temporary Integer 1 for Internal Use]]>
+</Description>
+<DefaultData Format="L5K">
+<![CDATA[0]]>
+</DefaultData>
+<DefaultData Format="Decorated">
+<DataValue DataType="INT" Radix="Decimal" Value="0"/>
+</DefaultData>
+</LocalTag>
+<LocalTag Name="TEMP_INT_2" DataType="INT" Radix="Decimal" ExternalAccess="None">
+<Description>
+<![CDATA[Temporary Integer 2 for Internal Use]]>
+</Description>
+<DefaultData Format="L5K">
+<![CDATA[0]]>
+</DefaultData>
+<DefaultData Format="Decorated">
+<DataValue DataType="INT" Radix="Decimal" Value="0"/>
+</DefaultData>
+</LocalTag>
+<LocalTag Name="OID_Invalid_Flag" DataType="BOOL" Radix="Decimal" ExternalAccess="None">
+<Description>
+<![CDATA[Internal Use for flagging invalid OIDs]]>
+</Description>
+<DefaultData Format="L5K">
+<![CDATA[0]]>
+</DefaultData>
+<DefaultData Format="Decorated">
+<DataValue DataType="BOOL" Radix="Decimal" Value="0"/>
+</DefaultData>
+</LocalTag>
+<LocalTag Name="OID_Length_Index" DataType="INT" Radix="Decimal" ExternalAccess="None">
+<Description>
+<![CDATA[OID Length Byte Location Index]]>
+</Description>
+<DefaultData Format="L5K">
+<![CDATA[0]]>
+</DefaultData>
+<DefaultData Format="Decorated">
+<DataValue DataType="INT" Radix="Decimal" Value="0"/>
+</DefaultData>
+</LocalTag>
+<LocalTag Name="TEMP_DINT" DataType="DINT" Radix="Decimal" ExternalAccess="None">
+<Description>
+<![CDATA[Temporary Holding Integer for Internal Use]]>
+</Description>
+<DefaultData Format="L5K">
+<![CDATA[0]]>
+</DefaultData>
+<DefaultData Format="Decorated">
+<DataValue DataType="DINT" Radix="Decimal" Value="0"/>
+</DefaultData>
+</LocalTag>
+<LocalTag Name="TEMP_STRING" DataType="STRING" ExternalAccess="None">
+<Description>
+<![CDATA[Temporary Holding String fo Internal use]]>
+</Description>
+<DefaultData Format="L5K">
+<![CDATA[[0,'$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00']]]>
+</DefaultData>
+<DefaultData Format="String" Length="0">
+<![CDATA['']]>
+</DefaultData>
+</LocalTag>
+<LocalTag Name="TEMP_ARRAY_1" DataType="SINT" Dimensions="64" Radix="Decimal" ExternalAccess="None">
+<Description>
+<![CDATA[Tempoary Array for Internal Use]]>
+</Description>
+<DefaultData Format="L5K">
+<![CDATA[[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]]]>
+</DefaultData>
+<DefaultData Format="Decorated">
+<Array DataType="SINT" Dimensions="64" Radix="Decimal">
+<Element Index="[0]" Value="0"/>
+<Element Index="[1]" Value="0"/>
+<Element Index="[2]" Value="0"/>
+<Element Index="[3]" Value="0"/>
+<Element Index="[4]" Value="0"/>
+<Element Index="[5]" Value="0"/>
+<Element Index="[6]" Value="0"/>
+<Element Index="[7]" Value="0"/>
+<Element Index="[8]" Value="0"/>
+<Element Index="[9]" Value="0"/>
+<Element Index="[10]" Value="0"/>
+<Element Index="[11]" Value="0"/>
+<Element Index="[12]" Value="0"/>
+<Element Index="[13]" Value="0"/>
+<Element Index="[14]" Value="0"/>
+<Element Index="[15]" Value="0"/>
+<Element Index="[16]" Value="0"/>
+<Element Index="[17]" Value="0"/>
+<Element Index="[18]" Value="0"/>
+<Element Index="[19]" Value="0"/>
+<Element Index="[20]" Value="0"/>
+<Element Index="[21]" Value="0"/>
+<Element Index="[22]" Value="0"/>
+<Element Index="[23]" Value="0"/>
+<Element Index="[24]" Value="0"/>
+<Element Index="[25]" Value="0"/>
+<Element Index="[26]" Value="0"/>
+<Element Index="[27]" Value="0"/>
+<Element Index="[28]" Value="0"/>
+<Element Index="[29]" Value="0"/>
+<Element Index="[30]" Value="0"/>
+<Element Index="[31]" Value="0"/>
+<Element Index="[32]" Value="0"/>
+<Element Index="[33]" Value="0"/>
+<Element Index="[34]" Value="0"/>
+<Element Index="[35]" Value="0"/>
+<Element Index="[36]" Value="0"/>
+<Element Index="[37]" Value="0"/>
+<Element Index="[38]" Value="0"/>
+<Element Index="[39]" Value="0"/>
+<Element Index="[40]" Value="0"/>
+<Element Index="[41]" Value="0"/>
+<Element Index="[42]" Value="0"/>
+<Element Index="[43]" Value="0"/>
+<Element Index="[44]" Value="0"/>
+<Element Index="[45]" Value="0"/>
+<Element Index="[46]" Value="0"/>
+<Element Index="[47]" Value="0"/>
+<Element Index="[48]" Value="0"/>
+<Element Index="[49]" Value="0"/>
+<Element Index="[50]" Value="0"/>
+<Element Index="[51]" Value="0"/>
+<Element Index="[52]" Value="0"/>
+<Element Index="[53]" Value="0"/>
+<Element Index="[54]" Value="0"/>
+<Element Index="[55]" Value="0"/>
+<Element Index="[56]" Value="0"/>
+<Element Index="[57]" Value="0"/>
+<Element Index="[58]" Value="0"/>
+<Element Index="[59]" Value="0"/>
+<Element Index="[60]" Value="0"/>
+<Element Index="[61]" Value="0"/>
+<Element Index="[62]" Value="0"/>
+<Element Index="[63]" Value="0"/>
+</Array>
+</DefaultData>
+</LocalTag>
+<LocalTag Name="TEMP_ARRAY_2" DataType="INT" Dimensions="64" Radix="Decimal" ExternalAccess="None">
+<Description>
+<![CDATA[Temporary Array for Internal Use]]>
+</Description>
+<DefaultData Format="L5K">
+<![CDATA[[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]]]>
+</DefaultData>
+<DefaultData Format="Decorated">
+<Array DataType="INT" Dimensions="64" Radix="Decimal">
+<Element Index="[0]" Value="0"/>
+<Element Index="[1]" Value="0"/>
+<Element Index="[2]" Value="0"/>
+<Element Index="[3]" Value="0"/>
+<Element Index="[4]" Value="0"/>
+<Element Index="[5]" Value="0"/>
+<Element Index="[6]" Value="0"/>
+<Element Index="[7]" Value="0"/>
+<Element Index="[8]" Value="0"/>
+<Element Index="[9]" Value="0"/>
+<Element Index="[10]" Value="0"/>
+<Element Index="[11]" Value="0"/>
+<Element Index="[12]" Value="0"/>
+<Element Index="[13]" Value="0"/>
+<Element Index="[14]" Value="0"/>
+<Element Index="[15]" Value="0"/>
+<Element Index="[16]" Value="0"/>
+<Element Index="[17]" Value="0"/>
+<Element Index="[18]" Value="0"/>
+<Element Index="[19]" Value="0"/>
+<Element Index="[20]" Value="0"/>
+<Element Index="[21]" Value="0"/>
+<Element Index="[22]" Value="0"/>
+<Element Index="[23]" Value="0"/>
+<Element Index="[24]" Value="0"/>
+<Element Index="[25]" Value="0"/>
+<Element Index="[26]" Value="0"/>
+<Element Index="[27]" Value="0"/>
+<Element Index="[28]" Value="0"/>
+<Element Index="[29]" Value="0"/>
+<Element Index="[30]" Value="0"/>
+<Element Index="[31]" Value="0"/>
+<Element Index="[32]" Value="0"/>
+<Element Index="[33]" Value="0"/>
+<Element Index="[34]" Value="0"/>
+<Element Index="[35]" Value="0"/>
+<Element Index="[36]" Value="0"/>
+<Element Index="[37]" Value="0"/>
+<Element Index="[38]" Value="0"/>
+<Element Index="[39]" Value="0"/>
+<Element Index="[40]" Value="0"/>
+<Element Index="[41]" Value="0"/>
+<Element Index="[42]" Value="0"/>
+<Element Index="[43]" Value="0"/>
+<Element Index="[44]" Value="0"/>
+<Element Index="[45]" Value="0"/>
+<Element Index="[46]" Value="0"/>
+<Element Index="[47]" Value="0"/>
+<Element Index="[48]" Value="0"/>
+<Element Index="[49]" Value="0"/>
+<Element Index="[50]" Value="0"/>
+<Element Index="[51]" Value="0"/>
+<Element Index="[52]" Value="0"/>
+<Element Index="[53]" Value="0"/>
+<Element Index="[54]" Value="0"/>
+<Element Index="[55]" Value="0"/>
+<Element Index="[56]" Value="0"/>
+<Element Index="[57]" Value="0"/>
+<Element Index="[58]" Value="0"/>
+<Element Index="[59]" Value="0"/>
+<Element Index="[60]" Value="0"/>
+<Element Index="[61]" Value="0"/>
+<Element Index="[62]" Value="0"/>
+<Element Index="[63]" Value="0"/>
+</Array>
+</DefaultData>
+</LocalTag>
+</LocalTags>
+<Routines>
+<Routine Name="Logic" Type="ST">
+<STContent>
+<Line Number="0">
+<![CDATA[/* SNMP Packet Create]]>
+</Line>
+<Line Number="1">
+<![CDATA[Provided under MIT license]]>
+</Line>
+<Line Number="2">
+<![CDATA[Copyright 2019 by Jason Dornish]]>
+</Line>
+<Line Number="3">
+<![CDATA[Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:]]>
+</Line>
+<Line Number="4">
+<![CDATA[The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.]]>
+</Line>
+<Line Number="5">
+<![CDATA[THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.]]>
+</Line>
+<Line Number="6">
+<![CDATA[]]>
+</Line>
+<Line Number="7">
+<![CDATA[Builds an SNMP GetRequest packet for an Allen Bradley Logix processor supporting sockets.  Tested on CompactLogix(TM) L24 processor series.]]>
+</Line>
+<Line Number="8">
+<![CDATA[]]>
+</Line>
+<Line Number="9">
+<![CDATA[v.1.00 - Initial Build]]>
+</Line>
+<Line Number="10">
+<![CDATA[Note: Currently supports SNMP v1 only]]>
+</Line>
+<Line Number="11">
+<![CDATA[]]>
+</Line>
+<Line Number="12">
+<![CDATA[*/]]>
+</Line>
+<Line Number="13">
+<![CDATA[]]>
+</Line>
+<Line Number="14">
+<![CDATA[/* Convert IP address from decimal array to hex, for MSG use]]>
+</Line>
+<Line Number="15">
+<![CDATA[Steps: ]]>
+</Line>
+<Line Number="16">
+<![CDATA[1. Initialize temporary arrays.]]>
+</Line>
+<Line Number="17">
+<![CDATA[2. Find all '.' characters in the IP string.]]>
+</Line>
+<Line Number="18">
+<![CDATA[2a. If there are not 3 '.' characters, invalid IP string detected.]]>
+</Line>
+<Line Number="19">
+<![CDATA[3. Split the string based on the found '.' characters, into an array of integer octets.]]>
+</Line>
+<Line Number="20">
+<![CDATA[3a. Check each octet is between 0-255.]]>
+</Line>
+<Line Number="21">
+<![CDATA[]]>
+</Line>
+<Line Number="22">
+<![CDATA[]]>
+</Line>
+<Line Number="23">
+<![CDATA[]]>
+</Line>
+<Line Number="24">
+<![CDATA[*/]]>
+</Line>
+<Line Number="25">
+<![CDATA[]]>
+</Line>
+<Line Number="26">
+<![CDATA[// Clear the old packet]]>
+</Line>
+<Line Number="27">
+<![CDATA[FOR I := 0 TO 483 BY 1 DO]]>
+</Line>
+<Line Number="28">
+<![CDATA[	Packet[I] := 0;]]>
+</Line>
+<Line Number="29">
+<![CDATA[END_FOR;]]>
+</Line>
+<Line Number="30">
+<![CDATA[]]>
+</Line>
+<Line Number="31">
+<![CDATA[// Check IP address basic validity (Octet > 0, Octet < 256)]]>
+</Line>
+<Line Number="32">
+<![CDATA[IP_Address_Invalid_Flag := 0;	//Step 1 - Reset the invalid flag]]>
+</Line>
+<Line Number="33">
+<![CDATA[]]>
+</Line>
+<Line Number="34">
+<![CDATA[J := 0;							// Clear temporary holding iterator]]>
+</Line>
+<Line Number="35">
+<![CDATA[FOR I := 0 TO 63 BY 1 DO		// Clear the temporary arrays by writing 0 to all elements]]>
+</Line>
+<Line Number="36">
+<![CDATA[	TEMP_ARRAY_1[I] := 0;]]>
+</Line>
+<Line Number="37">
+<![CDATA[	TEMP_ARRAY_2[I] := 0;]]>
+</Line>
+<Line Number="38">
+<![CDATA[END_FOR;]]>
+</Line>
+<Line Number="39">
+<![CDATA[]]>
+</Line>
+<Line Number="40">
+<![CDATA[FOR I := 0 TO IP_Address_In.LEN-1 BY 1 DO	//Step 2 - Iterate on each character in the string]]>
+</Line>
+<Line Number="41">
+<![CDATA[	IF IP_Address_In.DATA[I] = 46 THEN		//If the IP address character =  '.' (char 46)]]>
+</Line>
+<Line Number="42">
+<![CDATA[		TEMP_ARRAY_2[J] := I;					//Log its location into the Temp Array, as it is an octet separator]]>
+</Line>
+<Line Number="43">
+<![CDATA[		J := J + 1;]]>
+</Line>
+<Line Number="44">
+<![CDATA[	ELSIF IP_Address_In.DATA[I] < 48 OR IP_Address_In.DATA[I] > 57 THEN	//If we detect a character that is not 0-9]]>
+</Line>
+<Line Number="45">
+<![CDATA[		IP_Address_Invalid_Flag := 1;		//Flag the address as invalid]]>
+</Line>
+<Line Number="46">
+<![CDATA[	END_IF;]]>
+</Line>
+<Line Number="47">
+<![CDATA[END_FOR;]]>
+</Line>
+<Line Number="48">
+<![CDATA[]]>
+</Line>
+<Line Number="49">
+<![CDATA[IF J <> 3 THEN								//If we did not finx 4 IP address octets (.s)]]>
+</Line>
+<Line Number="50">
+<![CDATA[	IP_Address_Invalid_Flag := 1;			//Then flag the address as invalid]]>
+</Line>
+<Line Number="51">
+<![CDATA[ELSIF NOT IP_Address_Invalid_Flag THEN		//If we did find 4 IP address octets, check if the address has not been flagged as invalid anywhere]]>
+</Line>
+<Line Number="52">
+<![CDATA[	//Parse Octet #1]]>
+</Line>
+<Line Number="53">
+<![CDATA[		MID(IP_Address_In,TEMP_ARRAY_2[0],1,TEMP_STRING);		//Parse the first octet out of the string	(from position 0 to first decimal)]]>
+</Line>
+<Line Number="54">
+<![CDATA[		STOD(TEMP_STRING,TEMP_DINT);							//Convert the octet to a DINT]]>
+</Line>
+<Line Number="55">
+<![CDATA[		IF TEMP_DINT < 0 OR TEMP_DINT > 255 THEN	// Check octet bounds]]>
+</Line>
+<Line Number="56">
+<![CDATA[			IP_Address_Invalid_Flag := 1;			// If we are out of bounds, throw an invalid flag, ]]>
+</Line>
+<Line Number="57">
+<![CDATA[			TEMP_ARRAY_1[3]:=0;						// Clear the temporary array for that octet]]>
+</Line>
+<Line Number="58">
+<![CDATA[		ELSE]]>
+</Line>
+<Line Number="59">
+<![CDATA[			CPS(TEMP_DINT,TEMP_ARRAY_1[3],1);		//Copy the octet into the temporary array (reverse order)]]>
+</Line>
+<Line Number="60">
+<![CDATA[		END_IF;]]>
+</Line>
+<Line Number="61">
+<![CDATA[	//Parse Octet #2]]>
+</Line>
+<Line Number="62">
+<![CDATA[		TEMP_INT_1 := TEMP_ARRAY_2[1]-TEMP_ARRAY_2[0]-1;			//Parse length = 2nd decimal position - 1st decimal position - 1 (for offset difference)]]>
+</Line>
+<Line Number="63">
+<![CDATA[		TEMP_INT_2 := TEMP_ARRAY_2[0]+2;							//Parse Start = 1st decimal position + 2 (1 to offset, 1 for position after decimal)]]>
+</Line>
+<Line Number="64">
+<![CDATA[		MID(IP_Address_In,TEMP_INT_1,TEMP_INT_2,TEMP_STRING);	//Parse the second octet out of the string]]>
+</Line>
+<Line Number="65">
+<![CDATA[		STOD(TEMP_STRING,TEMP_DINT);							//Convert the octet to a DINT]]>
+</Line>
+<Line Number="66">
+<![CDATA[		IF TEMP_DINT < 0 OR TEMP_DINT > 255 THEN	// Check octet bounds]]>
+</Line>
+<Line Number="67">
+<![CDATA[			IP_Address_Invalid_Flag := 1;			// If we are out of bounds, throw an invalid flag, ]]>
+</Line>
+<Line Number="68">
+<![CDATA[			TEMP_ARRAY_1[2]:=0;						// Clear the temporary array for that octet]]>
+</Line>
+<Line Number="69">
+<![CDATA[		ELSE]]>
+</Line>
+<Line Number="70">
+<![CDATA[			CPS(TEMP_DINT,TEMP_ARRAY_1[2],1);		//Copy the octet into the temporary array]]>
+</Line>
+<Line Number="71">
+<![CDATA[		END_IF;]]>
+</Line>
+<Line Number="72">
+<![CDATA[	//Parse Octet #3]]>
+</Line>
+<Line Number="73">
+<![CDATA[		TEMP_INT_1 := TEMP_ARRAY_2[2]-TEMP_ARRAY_2[1]-1;			//Parse length = 3rd decimal position - 2nd decimal position - 1 (for offset difference)]]>
+</Line>
+<Line Number="74">
+<![CDATA[		TEMP_INT_2 := TEMP_ARRAY_2[1]+2;							//Parse Start = 2nd decimal position + 2 (1 to offset, 1 for position after decimal)]]>
+</Line>
+<Line Number="75">
+<![CDATA[		MID(IP_Address_In,TEMP_INT_1,TEMP_INT_2,TEMP_STRING);	//Parse the 3rd octet out of the string]]>
+</Line>
+<Line Number="76">
+<![CDATA[		STOD(TEMP_STRING,TEMP_DINT);							//Convert the octet to a DINT]]>
+</Line>
+<Line Number="77">
+<![CDATA[		IF TEMP_DINT < 0 OR TEMP_DINT > 255 THEN	// Check octet bounds]]>
+</Line>
+<Line Number="78">
+<![CDATA[			IP_Address_Invalid_Flag := 1;			// If we are out of bounds, throw an invalid flag, ]]>
+</Line>
+<Line Number="79">
+<![CDATA[			TEMP_ARRAY_1[1]:=0;						// Clear the temporary array for that octet]]>
+</Line>
+<Line Number="80">
+<![CDATA[		ELSE]]>
+</Line>
+<Line Number="81">
+<![CDATA[			CPS(TEMP_DINT,TEMP_ARRAY_1[1],1);		//Copy the octet into the temporary array]]>
+</Line>
+<Line Number="82">
+<![CDATA[		END_IF;]]>
+</Line>
+<Line Number="83">
+<![CDATA[	//Parse Octet #3]]>
+</Line>
+<Line Number="84">
+<![CDATA[		TEMP_INT_1 := IP_Address_In.LEN-TEMP_ARRAY_2[2]-1;		//Parse length = Total Length - 3rd decimal position - 1 (for offset difference)]]>
+</Line>
+<Line Number="85">
+<![CDATA[		TEMP_INT_2 := TEMP_ARRAY_2[2]+2;						//Parse Start = 3rd decimal position + 2 (1 to offset, 1 for position after decimal)]]>
+</Line>
+<Line Number="86">
+<![CDATA[		MID(IP_Address_In,TEMP_INT_1,TEMP_INT_2,TEMP_STRING);	//Parse the fourth octet out of the string]]>
+</Line>
+<Line Number="87">
+<![CDATA[		STOD(TEMP_STRING,TEMP_DINT);							//Convert the octet to a DINT]]>
+</Line>
+<Line Number="88">
+<![CDATA[		IF TEMP_DINT < 0 OR TEMP_DINT > 255 THEN	// Check octet bounds]]>
+</Line>
+<Line Number="89">
+<![CDATA[			IP_Address_Invalid_Flag := 1;			// If we are out of bounds, throw an invalid flag, ]]>
+</Line>
+<Line Number="90">
+<![CDATA[			TEMP_ARRAY_1[0]:=0;						// Clear the temporary array for that octet]]>
+</Line>
+<Line Number="91">
+<![CDATA[		ELSE]]>
+</Line>
+<Line Number="92">
+<![CDATA[			CPS(TEMP_DINT,TEMP_ARRAY_1[0],1);		//Copy the octet into the temporary array]]>
+</Line>
+<Line Number="93">
+<![CDATA[		END_IF;]]>
+</Line>
+<Line Number="94">
+<![CDATA[	//Copy the array into the final DINT]]>
+</Line>
+<Line Number="95">
+<![CDATA[	COP(TEMP_ARRAY_1[0],IP_Address_Out,4);]]>
+</Line>
+<Line Number="96">
+<![CDATA[END_IF;]]>
+</Line>
+<Line Number="97">
+<![CDATA[]]>
+</Line>
+<Line Number="98">
+<![CDATA[IP_Address_Invalid := IP_Address_Invalid_Flag;	//Step 3 - Set the invalid bit to the flag.  This prevents the bit from flapping each scan]]>
+</Line>
+<Line Number="99">
+<![CDATA[]]>
+</Line>
+<Line Number="100">
+<![CDATA[/* Create SNMP Packet Header]]>
+</Line>
+<Line Number="101">
+<![CDATA[Format is:]]>
+</Line>
+<Line Number="102">
+<![CDATA[ [0] Packet Type]]>
+</Line>
+<Line Number="103">
+<![CDATA[ [1] Packet Length]]>
+</Line>
+<Line Number="104">
+<![CDATA[ [2-4] SNMP Version]]>
+</Line>
+<Line Number="105">
+<![CDATA[ [5-n] SNMP Community Block]]>
+</Line>
+<Line Number="106">
+<![CDATA[ [n+1-m] SNMP PDU Block]]>
+</Line>
+<Line Number="107">
+<![CDATA[]]>
+</Line>
+<Line Number="108">
+<![CDATA[*/]]>
+</Line>
+<Line Number="109">
+<![CDATA[Packet[0] := 16#30;	//0 Type = Sequence]]>
+</Line>
+<Line Number="110">
+<![CDATA[//Packet[1] := 16#2a;	//1 Length = 42 bytes (= version_length + 2 + community_length + 2 + getrequest_length + 2)]]>
+</Line>
+<Line Number="111">
+<![CDATA[]]>
+</Line>
+<Line Number="112">
+<![CDATA[]]>
+</Line>
+<Line Number="113">
+<![CDATA[/* Create SNMP Version Block]]>
+</Line>
+<Line Number="114">
+<![CDATA[Format is:]]>
+</Line>
+<Line Number="115">
+<![CDATA[ [0] Version Type]]>
+</Line>
+<Line Number="116">
+<![CDATA[ [1] Version Length]]>
+</Line>
+<Line Number="117">
+<![CDATA[ [2] Version Value]]>
+</Line>
+<Line Number="118">
+<![CDATA[*/]]>
+</Line>
+<Line Number="119">
+<![CDATA[Packet[2] := 16#02;	//2 SNMP Version - Type = Integer]]>
+</Line>
+<Line Number="120">
+<![CDATA[Packet[3] := 16#01;	//3 SNMP Version - Length = 1]]>
+</Line>
+<Line Number="121">
+<![CDATA[Packet[4] := 16#00;	//4 SNMP Version[0] - V1 = 00h]]>
+</Line>
+<Line Number="122">
+<![CDATA[]]>
+</Line>
+<Line Number="123">
+<![CDATA[/* Create SNMP Community Block]]>
+</Line>
+<Line Number="124">
+<![CDATA[Format is:]]>
+</Line>
+<Line Number="125">
+<![CDATA[ [0] Community String Type]]>
+</Line>
+<Line Number="126">
+<![CDATA[ [1] Community String Length]]>
+</Line>
+<Line Number="127">
+<![CDATA[ [2-n] Community String Value]]>
+</Line>
+<Line Number="128">
+<![CDATA[]]>
+</Line>
+<Line Number="129">
+<![CDATA[*/]]>
+</Line>
+<Line Number="130">
+<![CDATA[I := 0;		//Reset iterator #1 for re-use]]>
+</Line>
+<Line Number="131">
+<![CDATA[// Note: CurrentByte is also reset here by the FOR loop]]>
+</Line>
+<Line Number="132">
+<![CDATA[FOR CurrentByte := Packet[3] + 4 TO Packet[3] + 4 + Community.LEN + 1 BY 1 DO		//For packets after SNMP version field (4 + version field length - 1 + 2 for header)]]>
+</Line>
+<Line Number="133">
+<![CDATA[	IF CurrentByte = Packet[3] + 4 THEN]]>
+</Line>
+<Line Number="134">
+<![CDATA[		Packet[CurrentByte] := 16#04;		// If this is the first byte after the Version, set Community Type = Octet String = 04h]]>
+</Line>
+<Line Number="135">
+<![CDATA[	ELSIF CurrentByte = Packet[3] + 5 THEN]]>
+</Line>
+<Line Number="136">
+<![CDATA[		Packet[CurrentByte] := Community.LEN;	//If this is the second byte after the Version, set Community Length to the length of the string]]>
+</Line>
+<Line Number="137">
+<![CDATA[	ELSE]]>
+</Line>
+<Line Number="138">
+<![CDATA[		COP(Community.DATA[I],Packet[CurrentByte],1);	// Copy the current byte in the string to the packet]]>
+</Line>
+<Line Number="139">
+<![CDATA[		I := I + 1;	// Increment the byte in the string we are copying]]>
+</Line>
+<Line Number="140">
+<![CDATA[	END_IF;]]>
+</Line>
+<Line Number="141">
+<![CDATA[END_FOR;]]>
+</Line>
+<Line Number="142">
+<![CDATA[]]>
+</Line>
+<Line Number="143">
+<![CDATA[]]>
+</Line>
+<Line Number="144">
+<![CDATA[/* Create SNMP PDU]]>
+</Line>
+<Line Number="145">
+<![CDATA[Format is:]]>
+</Line>
+<Line Number="146">
+<![CDATA[ [0] PDU Type]]>
+</Line>
+<Line Number="147">
+<![CDATA[ [1] PDU Length]]>
+</Line>
+<Line Number="148">
+<![CDATA[ [2-n] RequestID Block]]>
+</Line>
+<Line Number="149">
+<![CDATA[ [n+1-m] Error Block]]>
+</Line>
+<Line Number="150">
+<![CDATA[ [m+1-o] Error Index Block]]>
+</Line>
+<Line Number="151">
+<![CDATA[ [o+1-p] VarBind List]]>
+</Line>
+<Line Number="152">
+<![CDATA[*/]]>
+</Line>
+<Line Number="153">
+<![CDATA[Packet[CurrentByte] := -95;		//  Type = 16#a0 = Get-Request (16#a1 = Get-Next-Request) - Note - 16#a1 = 161 unsigned = -95 signed]]>
+</Line>
+<Line Number="154">
+<![CDATA[PDU_Length_Index := CurrentByte + 1;	// Save the PDU Length byte location for later, when we can calculate (= RequestID_length + 2 + Error_Length + 2 + ErrorIndex_Length + 2 + VarBindList_Length + 2)]]>
+</Line>
+<Line Number="155">
+<![CDATA[CurrentByte := CurrentByte + 2;		// Increment the current byte past the block]]>
+</Line>
+<Line Number="156">
+<![CDATA[]]>
+</Line>
+<Line Number="157">
+<![CDATA[/* Create PDU Request ID block:]]>
+</Line>
+<Line Number="158">
+<![CDATA[ Format is:]]>
+</Line>
+<Line Number="159">
+<![CDATA[ [0] RequestID Type]]>
+</Line>
+<Line Number="160">
+<![CDATA[ [1] RequestID Length]]>
+</Line>
+<Line Number="161">
+<![CDATA[ [2-n] RequestID Value]]>
+</Line>
+<Line Number="162">
+<![CDATA[*/]]>
+</Line>
+<Line Number="163">
+<![CDATA[Packet[CurrentByte] := 16#02;	//15 - RequestID - Type = Integer]]>
+</Line>
+<Line Number="164">
+<![CDATA[Packet[CurrentByte+1] := 16#01;	//16 - RequestID - Length = 1]]>
+</Line>
+<Line Number="165">
+<![CDATA[IF RequestID < 0 OR RequestID > 255 THEN	// Check if RequestID is invalid (this program does not yet support RequestIDs longer than 1 byte)]]>
+</Line>
+<Line Number="166">
+<![CDATA[	RequestID_Invalid := 1;]]>
+</Line>
+<Line Number="167">
+<![CDATA[	Packet[CurrentByte+2] := 16#00;	// RequestID specified is invalid, Set Request ID to 0]]>
+</Line>
+<Line Number="168">
+<![CDATA[ELSE]]>
+</Line>
+<Line Number="169">
+<![CDATA[	RequestID_Invalid := 0;]]>
+</Line>
+<Line Number="170">
+<![CDATA[	Packet[CurrentByte+2] := RequestID;	//Set RequestID to specified value]]>
+</Line>
+<Line Number="171">
+<![CDATA[END_IF;]]>
+</Line>
+<Line Number="172">
+<![CDATA[CurrentByte := CurrentByte + 3;	// Increment the current byte past the block]]>
+</Line>
+<Line Number="173">
+<![CDATA[]]>
+</Line>
+<Line Number="174">
+<![CDATA[/* Create PDU Error Block]]>
+</Line>
+<Line Number="175">
+<![CDATA[Format is:]]>
+</Line>
+<Line Number="176">
+<![CDATA[ [0] Error Type]]>
+</Line>
+<Line Number="177">
+<![CDATA[ [1] Error Length]]>
+</Line>
+<Line Number="178">
+<![CDATA[ [2] Error Value]]>
+</Line>
+<Line Number="179">
+<![CDATA[*/]]>
+</Line>
+<Line Number="180">
+<![CDATA[Packet[CurrentByte] := 16#02;	// Error - Type = Integer]]>
+</Line>
+<Line Number="181">
+<![CDATA[Packet[CurrentByte+1] := 16#01;	// Error - Length = 1]]>
+</Line>
+<Line Number="182">
+<![CDATA[Packet[CurrentByte+2] := 16#00;	// Error - Value[0] = 0		- Set to 0 for sent packet, request may return error.  Possible values are 0 (noError), 1 (tooBig), 2 (noSuchName), 3 (badValue), 4 (readOnly), 5 (genErr).]]>
+</Line>
+<Line Number="183">
+<![CDATA[CurrentByte := CurrentByte + 3;	// Increment the current byte past the block]]>
+</Line>
+<Line Number="184">
+<![CDATA[]]>
+</Line>
+<Line Number="185">
+<![CDATA[/* Create PDU Error Index Block]]>
+</Line>
+<Line Number="186">
+<![CDATA[Format is:]]>
+</Line>
+<Line Number="187">
+<![CDATA[ [0] Error Index Type]]>
+</Line>
+<Line Number="188">
+<![CDATA[ [1] Error Index Length]]>
+</Line>
+<Line Number="189">
+<![CDATA[ [2] Error Index Value]]>
+</Line>
+<Line Number="190">
+<![CDATA[*/]]>
+</Line>
+<Line Number="191">
+<![CDATA[Packet[CurrentByte] := 16#02;	// Error Index - Type = Integer]]>
+</Line>
+<Line Number="192">
+<![CDATA[Packet[CurrentByte+1] := 16#01;	// Error Index - Length = 1]]>
+</Line>
+<Line Number="193">
+<![CDATA[Packet[CurrentByte+2] := 16#00;	// Error Index - Value[0] = 0	- Set to 0 for sent packet]]>
+</Line>
+<Line Number="194">
+<![CDATA[CurrentByte := CurrentByte + 3;	// Increment the current byte past the block]]>
+</Line>
+<Line Number="195">
+<![CDATA[]]>
+</Line>
+<Line Number="196">
+<![CDATA[/* Create the VarBind List]]>
+</Line>
+<Line Number="197">
+<![CDATA[Format is:]]>
+</Line>
+<Line Number="198">
+<![CDATA[ [0] Varbind List Type]]>
+</Line>
+<Line Number="199">
+<![CDATA[ [1] Varbind List Length]]>
+</Line>
+<Line Number="200">
+<![CDATA[ [2-n] Varbind Type]]>
+</Line>
+<Line Number="201">
+<![CDATA[*/]]>
+</Line>
+<Line Number="202">
+<![CDATA[Packet[CurrentByte] := 16#30;					// VarBind List - Type = Sequence]]>
+</Line>
+<Line Number="203">
+<![CDATA[VarBindList_Length_Index := CurrentByte + 1;	// Save the VarBind List Length byte location for later, when we can calculate (=VarBind Length + 2)]]>
+</Line>
+<Line Number="204">
+<![CDATA[CurrentByte := CurrentByte + 2;					// Increment the current byte past the block]]>
+</Line>
+<Line Number="205">
+<![CDATA[]]>
+</Line>
+<Line Number="206">
+<![CDATA[/* Create the VarBind Type]]>
+</Line>
+<Line Number="207">
+<![CDATA[Format is:]]>
+</Line>
+<Line Number="208">
+<![CDATA[ [0] Varbind Type]]>
+</Line>
+<Line Number="209">
+<![CDATA[ [1] Varbind Length]]>
+</Line>
+<Line Number="210">
+<![CDATA[ [2-n] Object Identifier (OID)]]>
+</Line>
+<Line Number="211">
+<![CDATA[ [n+1-m] Value]]>
+</Line>
+<Line Number="212">
+<![CDATA[*/]]>
+</Line>
+<Line Number="213">
+<![CDATA[Packet[CurrentByte] := 16#30;	//VarBind - Type = Sequence]]>
+</Line>
+<Line Number="214">
+<![CDATA[VarBind_Length_Index := CurrentByte + 1;			//Save the VarBind Length byte location for later, when we can calculate (= OID Length + Value Length)]]>
+</Line>
+<Line Number="215">
+<![CDATA[CurrentByte := CurrentByte + 2;					// Increment the current byte past the block]]>
+</Line>
+<Line Number="216">
+<![CDATA[]]>
+</Line>
+<Line Number="217">
+<![CDATA[/* Create The OID block]]>
+</Line>
+<Line Number="218">
+<![CDATA[Format is:]]>
+</Line>
+<Line Number="219">
+<![CDATA[ [0] OID Type]]>
+</Line>
+<Line Number="220">
+<![CDATA[ [1] OID Length]]>
+</Line>
+<Line Number="221">
+<![CDATA[ [2-n] OID Value]]>
+</Line>
+<Line Number="222">
+<![CDATA[*/]]>
+</Line>
+<Line Number="223">
+<![CDATA[/* Note: OID integers are encoded in 7-bit, with bit 8 encoded as 'More' signal.]]>
+</Line>
+<Line Number="224">
+<![CDATA[Practically, this means if the value in the OID is over 127, encode the first 7 bits, then move the next 7 bits to the next byte.]]>
+</Line>
+<Line Number="225">
+<![CDATA[This program has a limitation of a 2-byte value, to keep things simple, so the max value of any number in the OID is 32767.]]>
+</Line>
+<Line Number="226">
+<![CDATA[*/]]>
+</Line>
+<Line Number="227">
+<![CDATA[Packet[CurrentByte] := 16#06;	// Packet type = OID]]>
+</Line>
+<Line Number="228">
+<![CDATA[OID_Length_Index := CurrentByte + 1;	// Save the OID length]]>
+</Line>
+<Line Number="229">
+<![CDATA[CurrentByte := CurrentByte + 2;			// Increment the current byte to the start of the OID data]]>
+</Line>
+<Line Number="230">
+<![CDATA[]]>
+</Line>
+<Line Number="231">
+<![CDATA[OID_Invalid_Flag := 0;	//Reset the OID Invalid Flag]]>
+</Line>
+<Line Number="232">
+<![CDATA[J := 0;							// Clear temporary holding iterator]]>
+</Line>
+<Line Number="233">
+<![CDATA[FOR I := 0 TO 63 BY 1 DO		// Clear the temporary array by writing 0 to all elements]]>
+</Line>
+<Line Number="234">
+<![CDATA[	TEMP_ARRAY_1[I] := 0;]]>
+</Line>
+<Line Number="235">
+<![CDATA[	TEMP_ARRAY_2[I] := 0;]]>
+</Line>
+<Line Number="236">
+<![CDATA[END_FOR;]]>
+</Line>
+<Line Number="237">
+<![CDATA[]]>
+</Line>
+<Line Number="238">
+<![CDATA[FOR I := 0 TO OID.LEN-1 BY 1 DO	// Step 2 - Iterate on each character in the string]]>
+</Line>
+<Line Number="239">
+<![CDATA[	IF OID.DATA[I] = 46 THEN		// If the OID address character =  '.' (char 46)]]>
+</Line>
+<Line Number="240">
+<![CDATA[		TEMP_ARRAY_1[J] := I;					// Log its location into the Temp Array, as it is an octet separator]]>
+</Line>
+<Line Number="241">
+<![CDATA[		J := J + 1;]]>
+</Line>
+<Line Number="242">
+<![CDATA[	ELSIF OID.DATA[I] < 48 OR OID.DATA[I] > 57 THEN		// If we detect a character that is not 0-9]]>
+</Line>
+<Line Number="243">
+<![CDATA[		OID_Invalid_Flag := 1;		// Flag the OID as invalid]]>
+</Line>
+<Line Number="244">
+<![CDATA[	END_IF;]]>
+</Line>
+<Line Number="245">
+<![CDATA[END_FOR;]]>
+</Line>
+<Line Number="246">
+<![CDATA[IF J < 3 THEN 					// If we do not have enough fields in the OID, (at least 1.3.6.1)]]>
+</Line>
+<Line Number="247">
+<![CDATA[	OID_Invalid_Flag := 1;		// Flag the OID string as invalid]]>
+</Line>
+<Line Number="248">
+<![CDATA[ELSIF NOT OID_Invalid_Flag THEN	// If the OID string is so far valid]]>
+</Line>
+<Line Number="249">
+<![CDATA[	FOR I := 0 TO J BY 1 DO		//Parse through detected OID integers.]]>
+</Line>
+<Line Number="250">
+<![CDATA[		//Parse Octet #1]]>
+</Line>
+<Line Number="251">
+<![CDATA[		IF I = 0 THEN]]>
+</Line>
+<Line Number="252">
+<![CDATA[			MID(OID,TEMP_ARRAY_1[0],1,TEMP_STRING);		// Parse the first octet out of the string	(from position 0 to first decimal)]]>
+</Line>
+<Line Number="253">
+<![CDATA[			STOD(TEMP_STRING,TEMP_DINT);				// Convert the octet to a DINT]]>
+</Line>
+<Line Number="254">
+<![CDATA[			IF TEMP_DINT <> 1 THEN ]]>
+</Line>
+<Line Number="255">
+<![CDATA[				OID_Invalid_Flag := 1; 	//If the OID doesn't start with 1, it's invalid]]>
+</Line>
+<Line Number="256">
+<![CDATA[			END_IF;]]>
+</Line>
+<Line Number="257">
+<![CDATA[]]>
+</Line>
+<Line Number="258">
+<![CDATA[		ELSE]]>
+</Line>
+<Line Number="259">
+<![CDATA[			IF I = J THEN]]>
+</Line>
+<Line Number="260">
+<![CDATA[				// Parse last Octet (n)]]>
+</Line>
+<Line Number="261">
+<![CDATA[				TEMP_INT_1 := OID.LEN-TEMP_ARRAY_1[I-1]-1;			// Parse length = Last Character - 1st decimal position - 1 (for offset difference)]]>
+</Line>
+<Line Number="262">
+<![CDATA[				TEMP_INT_2 := TEMP_ARRAY_1[I-1]+2;					// Parse Start = 1st decimal position + 2 (1 to offset, 1 for position after decimal)]]>
+</Line>
+<Line Number="263">
+<![CDATA[				MID(OID,TEMP_INT_1,TEMP_INT_2,TEMP_STRING);		// Parse the second octet out of the string]]>
+</Line>
+<Line Number="264">
+<![CDATA[				STOD(TEMP_STRING,TEMP_DINT);					// Convert the octet to a DINT]]>
+</Line>
+<Line Number="265">
+<![CDATA[			ELSE]]>
+</Line>
+<Line Number="266">
+<![CDATA[				//Parse Octet 1 to n-1]]>
+</Line>
+<Line Number="267">
+<![CDATA[				TEMP_INT_1 := TEMP_ARRAY_1[I]-TEMP_ARRAY_1[I-1]-1;			// Parse length = 2nd decimal position - 1st decimal position - 1 (for offset difference)]]>
+</Line>
+<Line Number="268">
+<![CDATA[				TEMP_INT_2 := TEMP_ARRAY_1[I-1]+2;							// Parse Start = 1st decimal position + 2 (1 to offset, 1 for position after decimal)]]>
+</Line>
+<Line Number="269">
+<![CDATA[				MID(OID,TEMP_INT_1,TEMP_INT_2,TEMP_STRING);		// Parse the second octet out of the string]]>
+</Line>
+<Line Number="270">
+<![CDATA[				STOD(TEMP_STRING,TEMP_DINT);					// Convert the octet to a DINT]]>
+</Line>
+<Line Number="271">
+<![CDATA[			END_IF;]]>
+</Line>
+<Line Number="272">
+<![CDATA[			// Check first two numbers]]>
+</Line>
+<Line Number="273">
+<![CDATA[			IF I = 1 AND TEMP_DINT <> 3 THEN			// If the second OID value is not 3, the OID is invalid]]>
+</Line>
+<Line Number="274">
+<![CDATA[				OID_Invalid_Flag := 1;]]>
+</Line>
+<Line Number="275">
+<![CDATA[				CurrentByte := CurrentByte + 1;				// Just increment the current byte by 1						]]>
+</Line>
+<Line Number="276">
+<![CDATA[			ELSIF I = 1 AND TEMP_DINT = 3 THEN			// If first pair is usual 1.3. (iso.)]]>
+</Line>
+<Line Number="277">
+<![CDATA[				Packet[CurrentByte] := 16#2b;				// Add first byte with special encoding]]>
+</Line>
+<Line Number="278">
+<![CDATA[				CurrentByte := CurrentByte + 1;				// Increment the Current Byte]]>
+</Line>
+<Line Number="279">
+<![CDATA[			ELSIF TEMP_DINT > 127 AND TEMP_DINT < 16384 THEN	// If the value is 2 bytes, then]]>
+</Line>
+<Line Number="280">
+<![CDATA[				Packet[CurrentByte+1].0 := TEMP_DINT.0;		// For the first 7 bits, copy to the 2nd byte]]>
+</Line>
+<Line Number="281">
+<![CDATA[				Packet[CurrentByte+1].1 := TEMP_DINT.1;]]>
+</Line>
+<Line Number="282">
+<![CDATA[				Packet[CurrentByte+1].2 := TEMP_DINT.2;]]>
+</Line>
+<Line Number="283">
+<![CDATA[				Packet[CurrentByte+1].3 := TEMP_DINT.3;]]>
+</Line>
+<Line Number="284">
+<![CDATA[				Packet[CurrentByte+1].4 := TEMP_DINT.4;]]>
+</Line>
+<Line Number="285">
+<![CDATA[				Packet[CurrentByte+1].5 := TEMP_DINT.5;]]>
+</Line>
+<Line Number="286">
+<![CDATA[				Packet[CurrentByte+1].6 := TEMP_DINT.6;]]>
+</Line>
+<Line Number="287">
+<![CDATA[				Packet[CurrentByte+1].7 := 0;				// Overwrite the More bit in case it contained data.]]>
+</Line>
+<Line Number="288">
+<![CDATA[				Packet[CurrentByte].0 := TEMP_DINT.7;		// For the remaining 7 bits, copy to the first byte]]>
+</Line>
+<Line Number="289">
+<![CDATA[				Packet[CurrentByte].1 := TEMP_DINT.8;]]>
+</Line>
+<Line Number="290">
+<![CDATA[				Packet[CurrentByte].2 := TEMP_DINT.9;]]>
+</Line>
+<Line Number="291">
+<![CDATA[				Packet[CurrentByte].3 := TEMP_DINT.10;]]>
+</Line>
+<Line Number="292">
+<![CDATA[				Packet[CurrentByte].4 := TEMP_DINT.11;]]>
+</Line>
+<Line Number="293">
+<![CDATA[				Packet[CurrentByte].5 := TEMP_DINT.12;]]>
+</Line>
+<Line Number="294">
+<![CDATA[				Packet[CurrentByte].6 := TEMP_DINT.13;]]>
+</Line>
+<Line Number="295">
+<![CDATA[				Packet[CurrentByte].7 := 1;				// Overwrite the last bit - set the Next bit]]>
+</Line>
+<Line Number="296">
+<![CDATA[				CurrentByte := CurrentByte + 2;			// Increment the current byte by 2]]>
+</Line>
+<Line Number="297">
+<![CDATA[			ELSIF TEMP_DINT >= 16384 AND TEMP_DINT < 2097152 THEN	// If the value is 3-bytes, then]]>
+</Line>
+<Line Number="298">
+<![CDATA[				Packet[CurrentByte+2].0 := TEMP_DINT.0;		// For the first 7 bits, copy to the 3rd byte]]>
+</Line>
+<Line Number="299">
+<![CDATA[				Packet[CurrentByte+2].1 := TEMP_DINT.1;]]>
+</Line>
+<Line Number="300">
+<![CDATA[				Packet[CurrentByte+2].2 := TEMP_DINT.2;]]>
+</Line>
+<Line Number="301">
+<![CDATA[				Packet[CurrentByte+2].3 := TEMP_DINT.3;]]>
+</Line>
+<Line Number="302">
+<![CDATA[				Packet[CurrentByte+2].4 := TEMP_DINT.4;]]>
+</Line>
+<Line Number="303">
+<![CDATA[				Packet[CurrentByte+2].5 := TEMP_DINT.5;]]>
+</Line>
+<Line Number="304">
+<![CDATA[				Packet[CurrentByte+2].6 := TEMP_DINT.6;]]>
+</Line>
+<Line Number="305">
+<![CDATA[				Packet[CurrentByte+2].7 := 0;				// Overwrite the More bit in case it contained data]]>
+</Line>
+<Line Number="306">
+<![CDATA[				Packet[CurrentByte+1].0 := TEMP_DINT.7;		// For the second 7 bits, copy to the 2nd byte]]>
+</Line>
+<Line Number="307">
+<![CDATA[				Packet[CurrentByte+1].1 := TEMP_DINT.8;	]]>
+</Line>
+<Line Number="308">
+<![CDATA[				Packet[CurrentByte+1].2 := TEMP_DINT.9;]]>
+</Line>
+<Line Number="309">
+<![CDATA[				Packet[CurrentByte+1].3 := TEMP_DINT.10;]]>
+</Line>
+<Line Number="310">
+<![CDATA[				Packet[CurrentByte+1].4 := TEMP_DINT.11;]]>
+</Line>
+<Line Number="311">
+<![CDATA[				Packet[CurrentByte+1].5 := TEMP_DINT.12;]]>
+</Line>
+<Line Number="312">
+<![CDATA[				Packet[CurrentByte+1].6 := TEMP_DINT.13;]]>
+</Line>
+<Line Number="313">
+<![CDATA[				Packet[CurrentByte+1].7 := 1;				// Overwrite the More bit in case it contained data]]>
+</Line>
+<Line Number="314">
+<![CDATA[				Packet[CurrentByte].0 := TEMP_DINT.14;		// For the third 7 bits, copy to the first byte]]>
+</Line>
+<Line Number="315">
+<![CDATA[				Packet[CurrentByte].1 := TEMP_DINT.15;]]>
+</Line>
+<Line Number="316">
+<![CDATA[				Packet[CurrentByte].2 := TEMP_DINT.16;]]>
+</Line>
+<Line Number="317">
+<![CDATA[				Packet[CurrentByte].3 := TEMP_DINT.17;]]>
+</Line>
+<Line Number="318">
+<![CDATA[				Packet[CurrentByte].4 := TEMP_DINT.18;]]>
+</Line>
+<Line Number="319">
+<![CDATA[				Packet[CurrentByte].5 := TEMP_DINT.19;]]>
+</Line>
+<Line Number="320">
+<![CDATA[				Packet[CurrentByte].6 := TEMP_DINT.20;]]>
+</Line>
+<Line Number="321">
+<![CDATA[				Packet[CurrentByte].7 := 1;				// Overwrite the last bit - set the Next bit]]>
+</Line>
+<Line Number="322">
+<![CDATA[				CurrentByte := CurrentByte + 3;			// Increment the current byte by 3]]>
+</Line>
+<Line Number="323">
+<![CDATA[			ELSIF TEMP_DINT >= 2097152 AND TEMP_DINT < 268435456 THEN	// IF the value is 4-bytes, then]]>
+</Line>
+<Line Number="324">
+<![CDATA[				Packet[CurrentByte+3].0 := TEMP_DINT.0;		// For the first 7 bits, copy to the 4th byte]]>
+</Line>
+<Line Number="325">
+<![CDATA[				Packet[CurrentByte+3].1 := TEMP_DINT.1;]]>
+</Line>
+<Line Number="326">
+<![CDATA[				Packet[CurrentByte+3].2 := TEMP_DINT.2;]]>
+</Line>
+<Line Number="327">
+<![CDATA[				Packet[CurrentByte+3].3 := TEMP_DINT.3;]]>
+</Line>
+<Line Number="328">
+<![CDATA[				Packet[CurrentByte+3].4 := TEMP_DINT.4;]]>
+</Line>
+<Line Number="329">
+<![CDATA[				Packet[CurrentByte+3].5 := TEMP_DINT.5;]]>
+</Line>
+<Line Number="330">
+<![CDATA[				Packet[CurrentByte+3].6 := TEMP_DINT.6;]]>
+</Line>
+<Line Number="331">
+<![CDATA[				Packet[CurrentByte+3].7 := 0;				// Overwrite the More bit in case it contained data]]>
+</Line>
+<Line Number="332">
+<![CDATA[				Packet[CurrentByte+2].0 := TEMP_DINT.7;		// For the second 7 bits, copy to the 3rd byte]]>
+</Line>
+<Line Number="333">
+<![CDATA[				Packet[CurrentByte+2].1 := TEMP_DINT.8;]]>
+</Line>
+<Line Number="334">
+<![CDATA[				Packet[CurrentByte+2].2 := TEMP_DINT.9;]]>
+</Line>
+<Line Number="335">
+<![CDATA[				Packet[CurrentByte+2].3 := TEMP_DINT.10;]]>
+</Line>
+<Line Number="336">
+<![CDATA[				Packet[CurrentByte+2].4 := TEMP_DINT.11;]]>
+</Line>
+<Line Number="337">
+<![CDATA[				Packet[CurrentByte+2].5 := TEMP_DINT.12;]]>
+</Line>
+<Line Number="338">
+<![CDATA[				Packet[CurrentByte+2].6 := TEMP_DINT.13;]]>
+</Line>
+<Line Number="339">
+<![CDATA[				Packet[CurrentByte+2].7 := 1;				// Overwrite the More bit - set the Next bit]]>
+</Line>
+<Line Number="340">
+<![CDATA[				Packet[CurrentByte+1].0 := TEMP_DINT.14;	// For the third 7 bits, copy to the 2nd byte]]>
+</Line>
+<Line Number="341">
+<![CDATA[				Packet[CurrentByte+1].1 := TEMP_DINT.15;	]]>
+</Line>
+<Line Number="342">
+<![CDATA[				Packet[CurrentByte+1].2 := TEMP_DINT.16;]]>
+</Line>
+<Line Number="343">
+<![CDATA[				Packet[CurrentByte+1].3 := TEMP_DINT.17;]]>
+</Line>
+<Line Number="344">
+<![CDATA[				Packet[CurrentByte+1].4 := TEMP_DINT.18;]]>
+</Line>
+<Line Number="345">
+<![CDATA[				Packet[CurrentByte+1].5 := TEMP_DINT.19;]]>
+</Line>
+<Line Number="346">
+<![CDATA[				Packet[CurrentByte+1].6 := TEMP_DINT.20;]]>
+</Line>
+<Line Number="347">
+<![CDATA[				Packet[CurrentByte+1].7 := 1;				// Overwrite the More bit - set the Next bit]]>
+</Line>
+<Line Number="348">
+<![CDATA[				Packet[CurrentByte].0 := TEMP_DINT.21;		// For the fourth 7 bits, copy to the first byte]]>
+</Line>
+<Line Number="349">
+<![CDATA[				Packet[CurrentByte].1 := TEMP_DINT.22;]]>
+</Line>
+<Line Number="350">
+<![CDATA[				Packet[CurrentByte].2 := TEMP_DINT.23;]]>
+</Line>
+<Line Number="351">
+<![CDATA[				Packet[CurrentByte].3 := TEMP_DINT.24;]]>
+</Line>
+<Line Number="352">
+<![CDATA[				Packet[CurrentByte].4 := TEMP_DINT.25;]]>
+</Line>
+<Line Number="353">
+<![CDATA[				Packet[CurrentByte].5 := TEMP_DINT.26;]]>
+</Line>
+<Line Number="354">
+<![CDATA[				Packet[CurrentByte].6 := TEMP_DINT.27;]]>
+</Line>
+<Line Number="355">
+<![CDATA[				Packet[CurrentByte].7 := 1;				// Overwrite the last bit - set the Next bit]]>
+</Line>
+<Line Number="356">
+<![CDATA[				CurrentByte := CurrentByte + 4;			// Increment the current byte by 3]]>
+</Line>
+<Line Number="357">
+<![CDATA[			ELSIF TEMP_DINT >= 268435456 OR TEMP_DINT < 0 THEN			// If the OID is longer than 4 bytes, this is unsupported, so throw an error]]>
+</Line>
+<Line Number="358">
+<![CDATA[				OID_Invalid_Flag := 1;]]>
+</Line>
+<Line Number="359">
+<![CDATA[				CurrentByte := CurrentByte + 4;]]>
+</Line>
+<Line Number="360">
+<![CDATA[			ELSE										// If it's not special, ]]>
+</Line>
+<Line Number="361">
+<![CDATA[				COP(TEMP_DINT,Packet[CurrentByte],1);					// Copy the value into the current byte]]>
+</Line>
+<Line Number="362">
+<![CDATA[				CurrentByte := CurrentByte + 1;				// Increment the Current Byte]]>
+</Line>
+<Line Number="363">
+<![CDATA[			END_IF;]]>
+</Line>
+<Line Number="364">
+<![CDATA[		END_IF;]]>
+</Line>
+<Line Number="365">
+<![CDATA[	END_FOR;]]>
+</Line>
+<Line Number="366">
+<![CDATA[	Packet[OID_Length_Index] := CurrentByte - OID_Length_Index - 1;	//Set the OID Length now that we have it.]]>
+</Line>
+<Line Number="367">
+<![CDATA[	Packet[VarBind_Length_Index] := Packet[OID_Length_Index] + 4;			// Set the Varbind length (2 for header, + 2 for response)]]>
+</Line>
+<Line Number="368">
+<![CDATA[	Packet[VarBindList_Length_Index] := Packet[VarBind_Length_Index] + 2;	// Set the VarBind_List Length]]>
+</Line>
+<Line Number="369">
+<![CDATA[	Packet[PDU_Length_Index] := Packet[VarBindList_Length_Index] + 11;		// set the PDU Length (= RequestID_length + 2 + Error_Length + 2 + ErrorIndex_Length + 2 + VarBindList_Length + 2.  RequestID+Error+ErrorIndex + VarBindList Header = 11)]]>
+</Line>
+<Line Number="370">
+<![CDATA[]]>
+</Line>
+<Line Number="371">
+<![CDATA[	]]>
+</Line>
+<Line Number="372">
+<![CDATA[	]]>
+</Line>
+<Line Number="373">
+<![CDATA[]]>
+</Line>
+<Line Number="374">
+<![CDATA[END_IF;]]>
+</Line>
+<Line Number="375">
+<![CDATA[]]>
+</Line>
+<Line Number="376">
+<![CDATA[/* Create the Value block]]>
+</Line>
+<Line Number="377">
+<![CDATA[Format is:]]>
+</Line>
+<Line Number="378">
+<![CDATA[ [0] Type]]>
+</Line>
+<Line Number="379">
+<![CDATA[ [1] Length]]>
+</Line>
+<Line Number="380">
+<![CDATA[ [2-n] Value (if Type is not Null)]]>
+</Line>
+<Line Number="381">
+<![CDATA[*/]]>
+</Line>
+<Line Number="382">
+<![CDATA[Packet[CurrentByte] := 16#05;	//42 - Value - Type = Null]]>
+</Line>
+<Line Number="383">
+<![CDATA[Packet[CurrentByte+1] := 16#00;	//43 - Value - Length = 0]]>
+</Line>
+<Line Number="384">
+<![CDATA[//There is no value for the Get or GetNext request.  The Value will be added in the response.]]>
+</Line>
+<Line Number="385">
+<![CDATA[CurrentByte := CurrentByte + 2;	// Increment the current byte past the block]]>
+</Line>
+<Line Number="386">
+<![CDATA[]]>
+</Line>
+<Line Number="387">
+<![CDATA[Packet[1] := CurrentByte - 2;	//1 SNMP Packet Length = bytes (= version_length + 2 + community_length + 2 + getrequest_length + 2)]]>
+</Line>
+<Line Number="388">
+<![CDATA[BufLen := CurrentByte ;	// Output the whole packet length (a.k.a. packet length in field [1] + 2 for header)]]>
+</Line>
+</STContent>
+</Routine>
+</Routines>
+</AddOnInstructionDefinition>
+</AddOnInstructionDefinitions>
+</Controller>
+</RSLogix5000Content>

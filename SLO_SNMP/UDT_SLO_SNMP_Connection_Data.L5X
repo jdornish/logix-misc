@@ -1,0 +1,196 @@
+﻿<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<!--Data for Message Blocks-->
+<RSLogix5000Content SchemaRevision="1.0" SoftwareRevision="32.04" TargetName="SLO_SNMP_Connection_Data" TargetType="DataType" ContainsContext="true" Owner="J. Dornish" ExportDate="Fri Jan 07 08:11:08 2022" ExportOptions="References NoRawData L5KData DecoratedData Context Dependencies ForceProtectedEncoding AllProjDocTrans">
+<Controller Use="Context" Name="EatonSNMP">
+<DataTypes Use="Context">
+<DataType Use="Target" Name="SLO_SNMP_Connection_Data" Family="NoFamily" Class="User">
+<Description>
+<![CDATA[Data for Message Blocks]]>
+</Description>
+<Members>
+<Member Name="Socket_Create_Input" DataType="SLO_Socket_CreateParams" Dimension="0" Radix="NullType" Hidden="false" ExternalAccess="Read/Write">
+<Description>
+<![CDATA[Input for MSG block for Socket Create]]>
+</Description>
+</Member>
+<Member Name="Socket_Create_Output" DataType="DINT" Dimension="0" Radix="Decimal" Hidden="false" ExternalAccess="Read/Write">
+<Description>
+<![CDATA[Output for MSG block for Socket Create]]>
+</Description>
+</Member>
+<Member Name="Socket_Write_Input" DataType="SLO_Socket_WriteParams" Dimension="0" Radix="NullType" Hidden="false" ExternalAccess="Read/Write">
+<Description>
+<![CDATA[Input for MSG block for Socket Write]]>
+</Description>
+</Member>
+<Member Name="Socket_Write_Output" DataType="DINT" Dimension="0" Radix="Decimal" Hidden="false" ExternalAccess="Read/Write">
+<Description>
+<![CDATA[Output for MSG block for Socket Write]]>
+</Description>
+</Member>
+<Member Name="Socket_Read_Input" DataType="SLO_Socket_ReadParams" Dimension="0" Radix="NullType" Hidden="false" ExternalAccess="Read/Write">
+<Description>
+<![CDATA[Input for MSG block for Socket Read]]>
+</Description>
+</Member>
+<Member Name="Socket_Read_Output" DataType="SLO_Socket_ReadResponse" Dimension="0" Radix="NullType" Hidden="false" ExternalAccess="Read/Write">
+<Description>
+<![CDATA[Output for MSG block for Socket Read]]>
+</Description>
+</Member>
+<Member Name="Read_Response_Timer" DataType="TIMER" Dimension="0" Radix="NullType" Hidden="false" ExternalAccess="Read/Write">
+<Description>
+<![CDATA[Time Delay for Reading a Response]]>
+</Description>
+</Member>
+<Member Name="ONS" DataType="DINT" Dimension="0" Radix="Decimal" Hidden="false" ExternalAccess="Read/Write">
+<Description>
+<![CDATA[Oneshots]]>
+</Description>
+</Member>
+<Member Name="Error_Retry_Timer" DataType="TIMER" Dimension="0" Radix="NullType" Hidden="false" ExternalAccess="Read/Write">
+<Description>
+<![CDATA[Timeout between retrys following errors]]>
+</Description>
+</Member>
+<Member Name="ZZZZZZZZZZSLO_SNMP_C9" DataType="SINT" Dimension="0" Radix="Decimal" Hidden="true" ExternalAccess="Read/Write"/>
+<Member Name="Retrying" DataType="BIT" Dimension="0" Radix="Decimal" Hidden="false" Target="ZZZZZZZZZZSLO_SNMP_C9" BitNumber="0" ExternalAccess="Read/Write">
+<Description>
+<![CDATA[Error Encountered: Retrying]]>
+</Description>
+</Member>
+<Member Name="Send_Packet_Req" DataType="BIT" Dimension="0" Radix="Decimal" Hidden="false" Target="ZZZZZZZZZZSLO_SNMP_C9" BitNumber="1" ExternalAccess="Read/Write">
+<Description>
+<![CDATA[Request to Send a Packet]]>
+</Description>
+</Member>
+<Member Name="Enable_COMMs" DataType="BIT" Dimension="0" Radix="Decimal" Hidden="false" Target="ZZZZZZZZZZSLO_SNMP_C9" BitNumber="2" ExternalAccess="Read/Write">
+<Description>
+<![CDATA[Enable  SNMP Communications]]>
+</Description>
+</Member>
+</Members>
+<Dependencies>
+<Dependency Type="DataType" Name="SLO_Socket_CreateParams"/>
+<Dependency Type="DataType" Name="SLO_Socket_WriteParams"/>
+<Dependency Type="DataType" Name="SLO_Socket_ReadParams"/>
+<Dependency Type="DataType" Name="SLO_Socket_ReadResponse"/>
+</Dependencies>
+</DataType>
+<DataType Name="SLO_Socket_CreateParams" Family="NoFamily" Class="User">
+<Description>
+<![CDATA[Socket Accept Response]]>
+</Description>
+<Members>
+<Member Name="Instance" DataType="DINT" Dimension="0" Radix="Decimal" Hidden="false" ExternalAccess="Read/Write">
+<Description>
+<![CDATA[Specify Protocol - 1 for TCP, 2 for UDP]]>
+</Description>
+</Member>
+<Member Name="Addr" DataType="SLO_Socket_SockAddr" Dimension="0" Radix="NullType" Hidden="false" ExternalAccess="Read/Write">
+<Description>
+<![CDATA[Address Information - Leave Port and IP 0 for Any]]>
+</Description>
+</Member>
+</Members>
+<Dependencies>
+<Dependency Type="DataType" Name="SLO_Socket_SockAddr"/>
+</Dependencies>
+</DataType>
+<DataType Name="SLO_Socket_ReadParams" Family="NoFamily" Class="User">
+<Description>
+<![CDATA[Socket Read Parameters]]>
+</Description>
+<Members>
+<Member Name="Timeout" DataType="DINT" Dimension="0" Radix="Decimal" Hidden="false" ExternalAccess="Read/Write">
+<Description>
+<![CDATA[Timeout in Milliseconds]]>
+</Description>
+</Member>
+<Member Name="BufLen" DataType="DINT" Dimension="0" Radix="Decimal" Hidden="false" ExternalAccess="Read/Write">
+<Description>
+<![CDATA[Number of Bytes to Receive]]>
+</Description>
+</Member>
+</Members>
+</DataType>
+<DataType Name="SLO_Socket_ReadResponse" Family="NoFamily" Class="User">
+<Description>
+<![CDATA[Socket Read Response]]>
+</Description>
+<Members>
+<Member Name="FromAddr" DataType="SLO_Socket_SockAddr" Dimension="0" Radix="NullType" Hidden="false" ExternalAccess="Read/Write">
+<Description>
+<![CDATA[Data structure of device sending UDP data]]>
+</Description>
+</Member>
+<Member Name="BufLen" DataType="DINT" Dimension="0" Radix="Decimal" Hidden="false" ExternalAccess="Read/Write">
+<Description>
+<![CDATA[Length (bytes) of data received]]>
+</Description>
+</Member>
+<Member Name="Buf" DataType="SINT" Dimension="484" Radix="Decimal" Hidden="false" ExternalAccess="Read/Write">
+<Description>
+<![CDATA[Array of returned data]]>
+</Description>
+</Member>
+</Members>
+<Dependencies>
+<Dependency Type="DataType" Name="SLO_Socket_SockAddr"/>
+</Dependencies>
+</DataType>
+<DataType Name="SLO_Socket_SockAddr" Family="NoFamily" Class="User">
+<Description>
+<![CDATA[Socket Read Response]]>
+</Description>
+<Members>
+<Member Name="Family" DataType="INT" Dimension="0" Radix="Decimal" Hidden="false" ExternalAccess="Read/Write">
+<Description>
+<![CDATA[Address Family - Must be 2]]>
+</Description>
+</Member>
+<Member Name="Port" DataType="INT" Dimension="0" Radix="Decimal" Hidden="false" ExternalAccess="Read/Write">
+<Description>
+<![CDATA[Port Number]]>
+</Description>
+</Member>
+<Member Name="Addr" DataType="DINT" Dimension="0" Radix="Decimal" Hidden="false" ExternalAccess="Read/Write">
+<Description>
+<![CDATA[IP Address (Hex format)]]>
+</Description>
+</Member>
+</Members>
+</DataType>
+<DataType Name="SLO_Socket_WriteParams" Family="NoFamily" Class="User">
+<Description>
+<![CDATA[Socket Write Parameters]]>
+</Description>
+<Members>
+<Member Name="Timeout" DataType="DINT" Dimension="0" Radix="Decimal" Hidden="false" ExternalAccess="Read/Write">
+<Description>
+<![CDATA[Timeout in Milliseconds]]>
+</Description>
+</Member>
+<Member Name="ToAddr" DataType="SLO_Socket_SockAddr" Dimension="0" Radix="NullType" Hidden="false" ExternalAccess="Read/Write">
+<Description>
+<![CDATA[Address structure for UDP]]>
+</Description>
+</Member>
+<Member Name="BufLen" DataType="DINT" Dimension="0" Radix="Decimal" Hidden="false" ExternalAccess="Read/Write">
+<Description>
+<![CDATA[Number of bytes to Send]]>
+</Description>
+</Member>
+<Member Name="Buf" DataType="SINT" Dimension="484" Radix="Decimal" Hidden="false" ExternalAccess="Read/Write">
+<Description>
+<![CDATA[Data to Send]]>
+</Description>
+</Member>
+</Members>
+<Dependencies>
+<Dependency Type="DataType" Name="SLO_Socket_SockAddr"/>
+</Dependencies>
+</DataType>
+</DataTypes>
+</Controller>
+</RSLogix5000Content>

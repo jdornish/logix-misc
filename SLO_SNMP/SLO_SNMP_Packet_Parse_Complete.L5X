@@ -1,0 +1,1631 @@
+﻿<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<!--Parses an SNMP v1 Get-Response packet.
+
+For use with SLO_SNMP_Packet_Build, and the SLO_SNMP datatypes.
+Responses Supported:
+- DINT types Int32 (02h) and Counter (42h)
+- String types Octet String (04h)-->
+<RSLogix5000Content SchemaRevision="1.0" SoftwareRevision="32.04" TargetName="SLO_SNMP_Packet_Parse" TargetType="AddOnInstructionDefinition" TargetRevision="1.0 " TargetLastEdited="2022-01-07T16:08:15.145Z" ContainsContext="true" Owner="J. Dornish" ExportDate="Fri Jan 07 08:10:37 2022" ExportOptions="References NoRawData L5KData DecoratedData Context Dependencies ForceProtectedEncoding AllProjDocTrans">
+<Controller Use="Context" Name="EatonSNMP">
+<DataTypes Use="Context">
+</DataTypes>
+<AddOnInstructionDefinitions Use="Context">
+<AddOnInstructionDefinition Use="Target" Name="SLO_SNMP_Packet_Parse" Revision="1.0" Vendor="J. Dornish" ExecutePrescan="false" ExecutePostscan="false" ExecuteEnableInFalse="false" CreatedDate="2019-08-21T16:57:57.087Z" CreatedBy="Not Available" EditedDate="2022-01-07T16:08:15.145Z" EditedBy="Not Available"
+ SoftwareRevision="v32.04">
+<Description>
+<![CDATA[Parses an SNMP v1 Get-Response packet.
+
+For use with SLO_SNMP_Packet_Build, and the SLO_SNMP datatypes.
+Responses Supported:
+- DINT types Int32 (02h) and Counter (42h)
+- String types Octet String (04h)]]>
+</Description>
+<RevisionNote>
+<![CDATA[v1.0 - by JDornish.
+Builds an SNMP packet from parameters.
+Currently supports SNMP v1, and Get-Next packets]]>
+</RevisionNote>
+<AdditionalHelpText>
+<![CDATA[2019 by Jason Dornish
+
+Note: 
+
+This block may not handle all standards complaint SNMP traffic.  Please test prior to putting into production.
+Max OID segment value is 268435456 (4 Byte 7-bit number), due to DINT limitations.  Hopefully this will not be an issue.
+
+This block is released under the MIT license.]]>
+</AdditionalHelpText>
+<Parameters>
+<Parameter Name="EnableIn" TagType="Base" DataType="BOOL" Usage="Input" Radix="Decimal" Required="false" Visible="false" ExternalAccess="Read Only">
+<Description>
+<![CDATA[Enable Input - System Defined Parameter]]>
+</Description>
+</Parameter>
+<Parameter Name="EnableOut" TagType="Base" DataType="BOOL" Usage="Output" Radix="Decimal" Required="false" Visible="false" ExternalAccess="Read Only">
+<Description>
+<![CDATA[Enable Output - System Defined Parameter]]>
+</Description>
+</Parameter>
+<Parameter Name="Packet" TagType="Base" DataType="SINT" Dimensions="484" Usage="InOut" Radix="Hex" Required="true" Visible="true" Constant="false">
+<Description>
+<![CDATA[SNMP Packet to build (Socket_WriteParams.Buf)]]>
+</Description>
+</Parameter>
+<Parameter Name="Community" TagType="Base" DataType="STRING" Usage="InOut" Required="true" Visible="true" Constant="false">
+<Description>
+<![CDATA[SNMP String (ex: public)]]>
+</Description>
+</Parameter>
+<Parameter Name="OID" TagType="Base" DataType="STRING" Usage="InOut" Required="true" Visible="true" Constant="false">
+<Description>
+<![CDATA[OID Returned (ex: 1.3.1.x.x.x.)]]>
+</Description>
+</Parameter>
+<Parameter Name="SNMP_RequestID" TagType="Base" DataType="INT" Usage="Input" Radix="Decimal" Required="true" Visible="true" ExternalAccess="Read Only">
+<Description>
+<![CDATA[SNMP Request ID]]>
+</Description>
+<DefaultData Format="L5K">
+<![CDATA[0]]>
+</DefaultData>
+<DefaultData Format="Decorated">
+<DataValue DataType="INT" Radix="Decimal" Value="0"/>
+</DefaultData>
+</Parameter>
+<Parameter Name="Output_Is_Integer" TagType="Base" DataType="BOOL" Usage="Output" Radix="Decimal" Required="true" Visible="true" ExternalAccess="Read Only">
+<Description>
+<![CDATA[The SNMP Response is an Integer]]>
+</Description>
+<DefaultData Format="L5K">
+<![CDATA[0]]>
+</DefaultData>
+<DefaultData Format="Decorated">
+<DataValue DataType="BOOL" Radix="Decimal" Value="0"/>
+</DefaultData>
+</Parameter>
+<Parameter Name="Output_Is_String" TagType="Base" DataType="BOOL" Usage="Output" Radix="Decimal" Required="true" Visible="true" ExternalAccess="Read Only">
+<Description>
+<![CDATA[The SNMP Response is an Octet String]]>
+</Description>
+<DefaultData Format="L5K">
+<![CDATA[0]]>
+</DefaultData>
+<DefaultData Format="Decorated">
+<DataValue DataType="BOOL" Radix="Decimal" Value="0"/>
+</DefaultData>
+</Parameter>
+<Parameter Name="Output_Is_Other" TagType="Base" DataType="BOOL" Usage="Output" Radix="Decimal" Required="true" Visible="true" ExternalAccess="Read Only">
+<Description>
+<![CDATA[The SNMP Response is another data type]]>
+</Description>
+<DefaultData Format="L5K">
+<![CDATA[0]]>
+</DefaultData>
+<DefaultData Format="Decorated">
+<DataValue DataType="BOOL" Radix="Decimal" Value="0"/>
+</DefaultData>
+</Parameter>
+<Parameter Name="Output_DINT" TagType="Base" DataType="DINT" Usage="Output" Radix="Decimal" Required="true" Visible="true" ExternalAccess="Read Only">
+<Description>
+<![CDATA[The SNMP Response Output if it is a DINT]]>
+</Description>
+<DefaultData Format="L5K">
+<![CDATA[0]]>
+</DefaultData>
+<DefaultData Format="Decorated">
+<DataValue DataType="DINT" Radix="Decimal" Value="0"/>
+</DefaultData>
+</Parameter>
+<Parameter Name="Output_String" TagType="Base" DataType="STRING" Usage="InOut" Required="true" Visible="true" Constant="false">
+<Description>
+<![CDATA[The SNMP Response Output if it is a String]]>
+</Description>
+</Parameter>
+<Parameter Name="Response_Invalid" TagType="Base" DataType="BOOL" Usage="Output" Radix="Decimal" Required="false" Visible="false" ExternalAccess="Read Only">
+<Description>
+<![CDATA[SNMP Response packet is invalid]]>
+</Description>
+<DefaultData Format="L5K">
+<![CDATA[0]]>
+</DefaultData>
+<DefaultData Format="Decorated">
+<DataValue DataType="BOOL" Radix="Decimal" Value="0"/>
+</DefaultData>
+</Parameter>
+<Parameter Name="Response_Invalid_Location" TagType="Base" DataType="INT" Usage="Output" Radix="Decimal" Required="false" Visible="false" ExternalAccess="Read Only">
+<Description>
+<![CDATA[Response Invalid Error Location (0 = None)]]>
+</Description>
+<DefaultData Format="L5K">
+<![CDATA[0]]>
+</DefaultData>
+<DefaultData Format="Decorated">
+<DataValue DataType="INT" Radix="Decimal" Value="0"/>
+</DefaultData>
+</Parameter>
+<Parameter Name="Output_Type" TagType="Base" DataType="INT" Usage="Output" Radix="Decimal" Required="false" Visible="true" ExternalAccess="Read Only">
+<Description>
+<![CDATA[The SNMP Response Data Type]]>
+</Description>
+<DefaultData Format="L5K">
+<![CDATA[0]]>
+</DefaultData>
+<DefaultData Format="Decorated">
+<DataValue DataType="INT" Radix="Decimal" Value="0"/>
+</DefaultData>
+</Parameter>
+<Parameter Name="SNMP_Output_Length" TagType="Base" DataType="INT" Usage="Output" Radix="Decimal" Required="false" Visible="true" ExternalAccess="Read Only">
+<Description>
+<![CDATA[Output Length]]>
+</Description>
+<DefaultData Format="L5K">
+<![CDATA[0]]>
+</DefaultData>
+<DefaultData Format="Decorated">
+<DataValue DataType="INT" Radix="Decimal" Value="0"/>
+</DefaultData>
+</Parameter>
+<Parameter Name="SNMP_Version" TagType="Base" DataType="INT" Usage="Output" Radix="Decimal" Required="false" Visible="true" ExternalAccess="Read Only">
+<Description>
+<![CDATA[SNMP Version (0 = V1)]]>
+</Description>
+<DefaultData Format="L5K">
+<![CDATA[0]]>
+</DefaultData>
+<DefaultData Format="Decorated">
+<DataValue DataType="INT" Radix="Decimal" Value="0"/>
+</DefaultData>
+</Parameter>
+<Parameter Name="SNMP_Response_Error_Value" TagType="Base" DataType="INT" Usage="Output" Radix="Decimal" Required="false" Visible="true" ExternalAccess="Read Only">
+<Description>
+<![CDATA[SNMP Response Error Value:
+0 (noError),
+1 (tooBig),
+2 (noSuchName),
+3 (badValue),
+4 (readOnly),
+5 (genErr)]]>
+</Description>
+<DefaultData Format="L5K">
+<![CDATA[0]]>
+</DefaultData>
+<DefaultData Format="Decorated">
+<DataValue DataType="INT" Radix="Decimal" Value="0"/>
+</DefaultData>
+</Parameter>
+<Parameter Name="SNMP_Version_Invalid" TagType="Base" DataType="BOOL" Usage="Output" Radix="Decimal" Required="false" Visible="false" ExternalAccess="Read Only">
+<Description>
+<![CDATA[SNMP Version is Invalid (Not V1)]]>
+</Description>
+<DefaultData Format="L5K">
+<![CDATA[0]]>
+</DefaultData>
+<DefaultData Format="Decorated">
+<DataValue DataType="BOOL" Radix="Decimal" Value="0"/>
+</DefaultData>
+</Parameter>
+<Parameter Name="Response_Invalid_Section" TagType="Base" DataType="INT" Usage="Output" Radix="Decimal" Required="false" Visible="false" ExternalAccess="None">
+<DefaultData Format="L5K">
+<![CDATA[0]]>
+</DefaultData>
+<DefaultData Format="Decorated">
+<DataValue DataType="INT" Radix="Decimal" Value="0"/>
+</DefaultData>
+</Parameter>
+<Parameter Name="Request_Response_Mismatch" TagType="Base" DataType="BOOL" Usage="Output" Radix="Decimal" Required="false" Visible="false" ExternalAccess="Read Only">
+<Description>
+<![CDATA[Mismatch between SNMP Request and Response]]>
+</Description>
+<DefaultData Format="L5K">
+<![CDATA[0]]>
+</DefaultData>
+<DefaultData Format="Decorated">
+<DataValue DataType="BOOL" Radix="Decimal" Value="0"/>
+</DefaultData>
+</Parameter>
+<Parameter Name="SNMP_Response_RequestID" TagType="Base" DataType="INT" Usage="Output" Radix="Decimal" Required="false" Visible="false" ExternalAccess="Read Only">
+<Description>
+<![CDATA[SNMP Response Request ID]]>
+</Description>
+<DefaultData Format="L5K">
+<![CDATA[0]]>
+</DefaultData>
+<DefaultData Format="Decorated">
+<DataValue DataType="INT" Radix="Decimal" Value="0"/>
+</DefaultData>
+</Parameter>
+</Parameters>
+<LocalTags>
+<LocalTag Name="I" DataType="INT" Radix="Decimal" ExternalAccess="None">
+<Description>
+<![CDATA[Internal Iterator #1]]>
+</Description>
+<DefaultData Format="L5K">
+<![CDATA[0]]>
+</DefaultData>
+<DefaultData Format="Decorated">
+<DataValue DataType="INT" Radix="Decimal" Value="0"/>
+</DefaultData>
+</LocalTag>
+<LocalTag Name="CurrentByte" DataType="INT" Radix="Decimal" ExternalAccess="None">
+<Description>
+<![CDATA[Currently Used Byte]]>
+</Description>
+<DefaultData Format="L5K">
+<![CDATA[0]]>
+</DefaultData>
+<DefaultData Format="Decorated">
+<DataValue DataType="INT" Radix="Decimal" Value="0"/>
+</DefaultData>
+</LocalTag>
+<LocalTag Name="SNMP_Message_Length" DataType="INT" Radix="Decimal" ExternalAccess="None">
+<Description>
+<![CDATA[Packet Length]]>
+</Description>
+<DefaultData Format="L5K">
+<![CDATA[0]]>
+</DefaultData>
+<DefaultData Format="Decorated">
+<DataValue DataType="INT" Radix="Decimal" Value="0"/>
+</DefaultData>
+</LocalTag>
+<LocalTag Name="SNMP_Community_Length" DataType="INT" Radix="Decimal" ExternalAccess="None">
+<Description>
+<![CDATA[Community String Length]]>
+</Description>
+<DefaultData Format="L5K">
+<![CDATA[0]]>
+</DefaultData>
+<DefaultData Format="Decorated">
+<DataValue DataType="INT" Radix="Decimal" Value="0"/>
+</DefaultData>
+</LocalTag>
+<LocalTag Name="SNMP_PDU_Length" DataType="INT" Radix="Decimal" ExternalAccess="None">
+<Description>
+<![CDATA[PDU Length]]>
+</Description>
+<DefaultData Format="L5K">
+<![CDATA[0]]>
+</DefaultData>
+<DefaultData Format="Decorated">
+<DataValue DataType="INT" Radix="Decimal" Value="0"/>
+</DefaultData>
+</LocalTag>
+<LocalTag Name="SNMP_Error_Length" DataType="INT" Radix="Decimal" ExternalAccess="None">
+<Description>
+<![CDATA[Error Length]]>
+</Description>
+<DefaultData Format="L5K">
+<![CDATA[0]]>
+</DefaultData>
+<DefaultData Format="Decorated">
+<DataValue DataType="INT" Radix="Decimal" Value="0"/>
+</DefaultData>
+</LocalTag>
+<LocalTag Name="SNMP_Error_Index_Length" DataType="INT" Radix="Decimal" ExternalAccess="None">
+<Description>
+<![CDATA[Error Index Length]]>
+</Description>
+<DefaultData Format="L5K">
+<![CDATA[0]]>
+</DefaultData>
+<DefaultData Format="Decorated">
+<DataValue DataType="INT" Radix="Decimal" Value="0"/>
+</DefaultData>
+</LocalTag>
+<LocalTag Name="SNMP_VarBind_List_Length" DataType="INT" Radix="Decimal" ExternalAccess="None">
+<Description>
+<![CDATA[VarBind List Length]]>
+</Description>
+<DefaultData Format="L5K">
+<![CDATA[0]]>
+</DefaultData>
+<DefaultData Format="Decorated">
+<DataValue DataType="INT" Radix="Decimal" Value="0"/>
+</DefaultData>
+</LocalTag>
+<LocalTag Name="SNMP_VarBind_Length" DataType="INT" Radix="Decimal" ExternalAccess="None">
+<Description>
+<![CDATA[VarBind Length]]>
+</Description>
+<DefaultData Format="L5K">
+<![CDATA[0]]>
+</DefaultData>
+<DefaultData Format="Decorated">
+<DataValue DataType="INT" Radix="Decimal" Value="0"/>
+</DefaultData>
+</LocalTag>
+<LocalTag Name="SNMP_Value_Length" DataType="INT" Radix="Decimal" ExternalAccess="None">
+<Description>
+<![CDATA[Value Length]]>
+</Description>
+<DefaultData Format="L5K">
+<![CDATA[0]]>
+</DefaultData>
+<DefaultData Format="Decorated">
+<DataValue DataType="INT" Radix="Decimal" Value="0"/>
+</DefaultData>
+</LocalTag>
+<LocalTag Name="SNMP_OID_Length" DataType="INT" Radix="Decimal" ExternalAccess="None">
+<Description>
+<![CDATA[SNMP OID Length]]>
+</Description>
+<DefaultData Format="L5K">
+<![CDATA[0]]>
+</DefaultData>
+<DefaultData Format="Decorated">
+<DataValue DataType="INT" Radix="Decimal" Value="0"/>
+</DefaultData>
+</LocalTag>
+<LocalTag Name="TEMP_DINT" DataType="DINT" Radix="Decimal" ExternalAccess="None">
+<Description>
+<![CDATA[Temporary Holding Integer for Internal Use]]>
+</Description>
+<DefaultData Format="L5K">
+<![CDATA[0]]>
+</DefaultData>
+<DefaultData Format="Decorated">
+<DataValue DataType="DINT" Radix="Decimal" Value="0"/>
+</DefaultData>
+</LocalTag>
+<LocalTag Name="TEMP_STRING" DataType="STRING" ExternalAccess="None">
+<Description>
+<![CDATA[Temporary Holding String fo Internal use]]>
+</Description>
+<DefaultData Format="L5K">
+<![CDATA[[0,'$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00']]]>
+</DefaultData>
+<DefaultData Format="String" Length="0">
+<![CDATA['']]>
+</DefaultData>
+</LocalTag>
+<LocalTag Name="Response_Invalid_Flag" DataType="BOOL" Radix="Decimal" ExternalAccess="None">
+<Description>
+<![CDATA[Internal Flag that the Response is corrupted or invalid]]>
+</Description>
+<DefaultData Format="L5K">
+<![CDATA[0]]>
+</DefaultData>
+<DefaultData Format="Decorated">
+<DataValue DataType="BOOL" Radix="Decimal" Value="0"/>
+</DefaultData>
+</LocalTag>
+<LocalTag Name="SNMP_OID_Invalid_Flag" DataType="BOOL" Radix="Decimal" ExternalAccess="None">
+<Description>
+<![CDATA[SNMP OID Invalid Flag]]>
+</Description>
+<DefaultData Format="L5K">
+<![CDATA[0]]>
+</DefaultData>
+<DefaultData Format="Decorated">
+<DataValue DataType="BOOL" Radix="Decimal" Value="0"/>
+</DefaultData>
+</LocalTag>
+<LocalTag Name="String_Period" DataType="STRING" ExternalAccess="None">
+<Description>
+<![CDATA[Period String]]>
+</Description>
+<DefaultData Format="L5K">
+<![CDATA[[1,'.$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00']]]>
+</DefaultData>
+<DefaultData Format="String" Length="1">
+<![CDATA['.']]>
+</DefaultData>
+</LocalTag>
+<LocalTag Name="String_1_3" DataType="STRING" ExternalAccess="None">
+<Description>
+<![CDATA[1.3 String]]>
+</Description>
+<DefaultData Format="L5K">
+<![CDATA[[3,'1.3$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00']]]>
+</DefaultData>
+<DefaultData Format="String" Length="3">
+<![CDATA['1.3']]>
+</DefaultData>
+</LocalTag>
+<LocalTag Name="TEMP_SINT_ARRAY" DataType="SINT" Dimensions="4" Radix="Decimal" ExternalAccess="None">
+<Description>
+<![CDATA[Array of SINT Values for DINT manipulation]]>
+</Description>
+<DefaultData Format="L5K">
+<![CDATA[[0,0,0,0]]]>
+</DefaultData>
+<DefaultData Format="Decorated">
+<Array DataType="SINT" Dimensions="4" Radix="Decimal">
+<Element Index="[0]" Value="0"/>
+<Element Index="[1]" Value="0"/>
+<Element Index="[2]" Value="0"/>
+<Element Index="[3]" Value="0"/>
+</Array>
+</DefaultData>
+</LocalTag>
+</LocalTags>
+<Routines>
+<Routine Name="Logic" Type="ST">
+<STContent>
+<Line Number="0">
+<![CDATA[/* SNMP Packet Parse]]>
+</Line>
+<Line Number="1">
+<![CDATA[Provided under MIT license]]>
+</Line>
+<Line Number="2">
+<![CDATA[Copyright 2019 by Jason Dornish]]>
+</Line>
+<Line Number="3">
+<![CDATA[Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:]]>
+</Line>
+<Line Number="4">
+<![CDATA[The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.]]>
+</Line>
+<Line Number="5">
+<![CDATA[THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.]]>
+</Line>
+<Line Number="6">
+<![CDATA[]]>
+</Line>
+<Line Number="7">
+<![CDATA[Builds an SNMP GetRequest packet for an Allen Bradley Logix processor supporting sockets.  Tested on CompactLogix(TM) L24 processor series.]]>
+</Line>
+<Line Number="8">
+<![CDATA[]]>
+</Line>
+<Line Number="9">
+<![CDATA[v.1.00 - Initial Build]]>
+</Line>
+<Line Number="10">
+<![CDATA[Note: Currently supports SNMP v1 only]]>
+</Line>
+<Line Number="11">
+<![CDATA[]]>
+</Line>
+<Line Number="12">
+<![CDATA[*/]]>
+</Line>
+<Line Number="13">
+<![CDATA[]]>
+</Line>
+<Line Number="14">
+<![CDATA[Response_Invalid_Flag := 0;	// Reset the Response Invalid Flag]]>
+</Line>
+<Line Number="15">
+<![CDATA[Response_Invalid_Location := 0;	]]>
+</Line>
+<Line Number="16">
+<![CDATA[Response_Invalid_Section := 0;]]>
+</Line>
+<Line Number="17">
+<![CDATA[]]>
+</Line>
+<Line Number="18">
+<![CDATA[/* Section #1 - Parse SNMP Packet Header]]>
+</Line>
+<Line Number="19">
+<![CDATA[Format is:]]>
+</Line>
+<Line Number="20">
+<![CDATA[ [0] Packet Type]]>
+</Line>
+<Line Number="21">
+<![CDATA[ [1] Packet Length]]>
+</Line>
+<Line Number="22">
+<![CDATA[ [2-4] SNMP Version]]>
+</Line>
+<Line Number="23">
+<![CDATA[ [5-n] SNMP Community Block]]>
+</Line>
+<Line Number="24">
+<![CDATA[ [n+1-m] SNMP PDU Block]]>
+</Line>
+<Line Number="25">
+<![CDATA[*/]]>
+</Line>
+<Line Number="26">
+<![CDATA[IF Packet[0] <> 16#30 THEN	//0 - Check Type = Sequence]]>
+</Line>
+<Line Number="27">
+<![CDATA[	Response_Invalid_Flag := 1;			// Throw an Invalid Resposne flag]]>
+</Line>
+<Line Number="28">
+<![CDATA[	Response_Invalid_Location := 0;		// Record the position of the Invalid Response]]>
+</Line>
+<Line Number="29">
+<![CDATA[	Response_Invalid_Section := 100;	// Note the Section of invalid data ]]>
+</Line>
+<Line Number="30">
+<![CDATA[ELSE]]>
+</Line>
+<Line Number="31">
+<![CDATA[	SNMP_Message_Length := Packet[1];	// 1 - If so far valid, record the packet length]]>
+</Line>
+<Line Number="32">
+<![CDATA[END_IF;	]]>
+</Line>
+<Line Number="33">
+<![CDATA[]]>
+</Line>
+<Line Number="34">
+<![CDATA[/* Section #2 - Parse SNMP Version Block]]>
+</Line>
+<Line Number="35">
+<![CDATA[Format is:]]>
+</Line>
+<Line Number="36">
+<![CDATA[ [0] Version Type]]>
+</Line>
+<Line Number="37">
+<![CDATA[ [1] Version Length]]>
+</Line>
+<Line Number="38">
+<![CDATA[ [2] Version Value]]>
+</Line>
+<Line Number="39">
+<![CDATA[*/]]>
+</Line>
+<Line Number="40">
+<![CDATA[IF NOT Response_Invalid_Flag THEN]]>
+</Line>
+<Line Number="41">
+<![CDATA[	IF Packet[2] <> 16#02 THEN		// If the SNMP Version type is not an integer, we cannot process]]>
+</Line>
+<Line Number="42">
+<![CDATA[		Response_Invalid_Flag := 1;			// Throw an Invalid Resposne flag]]>
+</Line>
+<Line Number="43">
+<![CDATA[		Response_Invalid_Location := 2;		// Record the position of the Invalid Response]]>
+</Line>
+<Line Number="44">
+<![CDATA[		Response_Invalid_Section := 201;	// Note the Section of invalid data ]]>
+</Line>
+<Line Number="45">
+<![CDATA[	ELSIF Packet[3] <> 1 THEN		// If the SNMP Version length != 1, we cannot process]]>
+</Line>
+<Line Number="46">
+<![CDATA[		Response_Invalid_Flag := 1;			// Throw an Invalid Resposne flag]]>
+</Line>
+<Line Number="47">
+<![CDATA[		Response_Invalid_Location := 3;		// Record the position of the Invalid Response]]>
+</Line>
+<Line Number="48">
+<![CDATA[		Response_Invalid_Section := 202;	// Note the Section of invalid data]]>
+</Line>
+<Line Number="49">
+<![CDATA[	ELSIF Packet[4] <> 16#00 THEN	// If the SNMP Version != 0 (V1), we cannot process]]>
+</Line>
+<Line Number="50">
+<![CDATA[		SNMP_Version := Packet[4];]]>
+</Line>
+<Line Number="51">
+<![CDATA[		SNMP_Version_Invalid := 1;]]>
+</Line>
+<Line Number="52">
+<![CDATA[		Response_Invalid_Location := 4;		// Record the position of the Invalid Respons]]>
+</Line>
+<Line Number="53">
+<![CDATA[		Response_Invalid_Flag := 1;			// Throw an Invalid Resposne flag]]>
+</Line>
+<Line Number="54">
+<![CDATA[		Response_Invalid_Section := 203;	// Note the Section of invalid data]]>
+</Line>
+<Line Number="55">
+<![CDATA[	ELSE							// If the SNMP version and all else are correct, record the version, and reset the version_invalid output]]>
+</Line>
+<Line Number="56">
+<![CDATA[		SNMP_Version := Packet[4];]]>
+</Line>
+<Line Number="57">
+<![CDATA[		SNMP_Version_Invalid := 0;			]]>
+</Line>
+<Line Number="58">
+<![CDATA[	END_IF;]]>
+</Line>
+<Line Number="59">
+<![CDATA[END_IF;]]>
+</Line>
+<Line Number="60">
+<![CDATA[]]>
+</Line>
+<Line Number="61">
+<![CDATA[/* Section 3 - Parse SNMP Community Block]]>
+</Line>
+<Line Number="62">
+<![CDATA[Format is:]]>
+</Line>
+<Line Number="63">
+<![CDATA[ [0] Community String Type]]>
+</Line>
+<Line Number="64">
+<![CDATA[ [1] Community String Length]]>
+</Line>
+<Line Number="65">
+<![CDATA[ [2-n] Community String Value]]>
+</Line>
+<Line Number="66">
+<![CDATA[*/]]>
+</Line>
+<Line Number="67">
+<![CDATA[IF NOT Response_Invalid_Flag THEN	// If the packet is so far valid...]]>
+</Line>
+<Line Number="68">
+<![CDATA[	IF Packet[5] <> 16#04 THEN											// If this is the first byte after the Version then.. check Community Type = Octet String = 04h]]>
+</Line>
+<Line Number="69">
+<![CDATA[		Response_Invalid_Flag := 1;										// Throw an Invalid Resposne flag]]>
+</Line>
+<Line Number="70">
+<![CDATA[		Response_Invalid_Location := 5;									// Record the position of the Invalid Response]]>
+</Line>
+<Line Number="71">
+<![CDATA[		Response_Invalid_Section := 300;								// Note the Section of invalid data]]>
+</Line>
+<Line Number="72">
+<![CDATA[	ELSE																// If so far good, ]]>
+</Line>
+<Line Number="73">
+<![CDATA[		SNMP_Community_Length := Packet[6];								// Record the community Length]]>
+</Line>
+<Line Number="74">
+<![CDATA[	END_IF;	]]>
+</Line>
+<Line Number="75">
+<![CDATA[	IF NOT Response_Invalid_Flag AND SNMP_Community_Length > 0 THEN		// If all is OK,]]>
+</Line>
+<Line Number="76">
+<![CDATA[		Community.LEN := SNMP_Community_Length;]]>
+</Line>
+<Line Number="77">
+<![CDATA[		COP(Packet[7],Community.DATA[0],SNMP_Community_Length);			// Copy the current byte in the string to the packet]]>
+</Line>
+<Line Number="78">
+<![CDATA[	END_IF;]]>
+</Line>
+<Line Number="79">
+<![CDATA[END_IF;]]>
+</Line>
+<Line Number="80">
+<![CDATA[]]>
+</Line>
+<Line Number="81">
+<![CDATA[]]>
+</Line>
+<Line Number="82">
+<![CDATA[/* Section 4 - Parse SNMP PDU]]>
+</Line>
+<Line Number="83">
+<![CDATA[Format is:]]>
+</Line>
+<Line Number="84">
+<![CDATA[ [0] PDU Type]]>
+</Line>
+<Line Number="85">
+<![CDATA[ [1] PDU Length]]>
+</Line>
+<Line Number="86">
+<![CDATA[ [2-n] RequestID Block]]>
+</Line>
+<Line Number="87">
+<![CDATA[ [n+1-m] Error Block]]>
+</Line>
+<Line Number="88">
+<![CDATA[ [m+1-o] Error Index Block]]>
+</Line>
+<Line Number="89">
+<![CDATA[ [o+1-p] VarBind List]]>
+</Line>
+<Line Number="90">
+<![CDATA[*/]]>
+</Line>
+<Line Number="91">
+<![CDATA[]]>
+</Line>
+<Line Number="92">
+<![CDATA[IF NOT Response_Invalid_Flag THEN]]>
+</Line>
+<Line Number="93">
+<![CDATA[	CurrentByte := 2 + 2 + Packet[3] + 2 + SNMP_Community_Length;		// Set our current packet location]]>
+</Line>
+<Line Number="94">
+<![CDATA[	IF Packet[CurrentByte] = -94 THEN				// Check Type = 16#a2 (Get-Response)]]>
+</Line>
+<Line Number="95">
+<![CDATA[		SNMP_PDU_Length := Packet[CurrentByte + 1];		// Record the PDU length]]>
+</Line>
+<Line Number="96">
+<![CDATA[	ELSE												// If the packet type is not recognized]]>
+</Line>
+<Line Number="97">
+<![CDATA[		Response_Invalid_Flag := 1;						// Throw an Invalid Resposne flag]]>
+</Line>
+<Line Number="98">
+<![CDATA[		Response_Invalid_Location := CurrentByte;		// Record the position of the Invalid Response]]>
+</Line>
+<Line Number="99">
+<![CDATA[		Response_Invalid_Section := 400;				// Note the Section of invalid data]]>
+</Line>
+<Line Number="100">
+<![CDATA[	END_IF;]]>
+</Line>
+<Line Number="101">
+<![CDATA[	CurrentByte := CurrentByte + 2;						// Increment the current byte position]]>
+</Line>
+<Line Number="102">
+<![CDATA[END_IF;]]>
+</Line>
+<Line Number="103">
+<![CDATA[]]>
+</Line>
+<Line Number="104">
+<![CDATA[/* Section 5 - Parse PDU Request ID block:]]>
+</Line>
+<Line Number="105">
+<![CDATA[ Format is:]]>
+</Line>
+<Line Number="106">
+<![CDATA[ [0] RequestID Type]]>
+</Line>
+<Line Number="107">
+<![CDATA[ [1] RequestID Length]]>
+</Line>
+<Line Number="108">
+<![CDATA[ [2-n] RequestID Value]]>
+</Line>
+<Line Number="109">
+<![CDATA[*/]]>
+</Line>
+<Line Number="110">
+<![CDATA[IF NOT Response_Invalid_Flag THEN]]>
+</Line>
+<Line Number="111">
+<![CDATA[	IF Packet[CurrentByte] <> 16#02 THEN				// If the SNMP Request ID is not an Integer THEN]]>
+</Line>
+<Line Number="112">
+<![CDATA[		Response_Invalid_Flag := 1;							// Throw an Invalid Resposne flag]]>
+</Line>
+<Line Number="113">
+<![CDATA[		Response_Invalid_Location := CurrentByte;			// Record the position of the Invalid Response]]>
+</Line>
+<Line Number="114">
+<![CDATA[		Response_Invalid_Section := 501;					// Note the Section of invalid data]]>
+</Line>
+<Line Number="115">
+<![CDATA[	ELSIF Packet[CurrentByte + 1] <> 16#01 THEN			// If the SNMP Request ID length is not 1 THEN]]>
+</Line>
+<Line Number="116">
+<![CDATA[		Response_Invalid_Flag := 1;							// Throw an Invalid Resposne flag]]>
+</Line>
+<Line Number="117">
+<![CDATA[		Response_Invalid_Location := CurrentByte + 1;		// Record the position of the Invalid Response]]>
+</Line>
+<Line Number="118">
+<![CDATA[		Response_Invalid_Section := 502;					// Note the Section of invalid data]]>
+</Line>
+<Line Number="119">
+<![CDATA[	ELSE												// If no errors have been found]]>
+</Line>
+<Line Number="120">
+<![CDATA[		SNMP_Response_RequestID := Packet[CurrentByte + 2];			// Record the SNMP Request ID]]>
+</Line>
+<Line Number="121">
+<![CDATA[		IF SNMP_RequestID <> SNMP_Response_RequestID THEN	// Check if the request ID matches the expected request ID]]>
+</Line>
+<Line Number="122">
+<![CDATA[			Request_Response_Mismatch := 1;						//If not, flag a mismatch]]>
+</Line>
+<Line Number="123">
+<![CDATA[		ELSE]]>
+</Line>
+<Line Number="124">
+<![CDATA[			Request_Response_Mismatch := 0;]]>
+</Line>
+<Line Number="125">
+<![CDATA[		END_IF;]]>
+</Line>
+<Line Number="126">
+<![CDATA[	END_IF;]]>
+</Line>
+<Line Number="127">
+<![CDATA[	CurrentByte := CurrentByte + 3;						// Increment the current byte past the block]]>
+</Line>
+<Line Number="128">
+<![CDATA[END_IF;]]>
+</Line>
+<Line Number="129">
+<![CDATA[]]>
+</Line>
+<Line Number="130">
+<![CDATA[]]>
+</Line>
+<Line Number="131">
+<![CDATA[]]>
+</Line>
+<Line Number="132">
+<![CDATA[/* Section 6 - Parse PDU Error Block]]>
+</Line>
+<Line Number="133">
+<![CDATA[Format is:]]>
+</Line>
+<Line Number="134">
+<![CDATA[ [0] Error Type]]>
+</Line>
+<Line Number="135">
+<![CDATA[ [1] Error Length]]>
+</Line>
+<Line Number="136">
+<![CDATA[ [2] Error Value]]>
+</Line>
+<Line Number="137">
+<![CDATA[*/]]>
+</Line>
+<Line Number="138">
+<![CDATA[IF NOT Response_Invalid_Flag THEN]]>
+</Line>
+<Line Number="139">
+<![CDATA[	IF Packet[CurrentByte] <> 16#02 THEN				// If the Error Type is not an Integer THEN]]>
+</Line>
+<Line Number="140">
+<![CDATA[		Response_Invalid_Flag := 1;							// Throw an Invalid Resposne flag]]>
+</Line>
+<Line Number="141">
+<![CDATA[		Response_Invalid_Location := CurrentByte;			// Record the position of the Invalid Response]]>
+</Line>
+<Line Number="142">
+<![CDATA[		Response_Invalid_Section := 601;					// Note the Section of invalid data]]>
+</Line>
+<Line Number="143">
+<![CDATA[	ELSIF Packet[CurrentByte + 1] <> 16#01 THEN			// If the Error Length is not 1 THEN]]>
+</Line>
+<Line Number="144">
+<![CDATA[		Response_Invalid_Flag := 1;							// Throw an Invalid Resposne flag]]>
+</Line>
+<Line Number="145">
+<![CDATA[		Response_Invalid_Location := CurrentByte + 1;		// Record the position of the Invalid Response]]>
+</Line>
+<Line Number="146">
+<![CDATA[		Response_Invalid_Section := 602;					// Note the Section of invalid data]]>
+</Line>
+<Line Number="147">
+<![CDATA[	ELSE												// If no errors have been found]]>
+</Line>
+<Line Number="148">
+<![CDATA[		SNMP_Response_Error_Value := Packet[CurrentByte + 2];	//Record the Error Value]]>
+</Line>
+<Line Number="149">
+<![CDATA[	END_IF;]]>
+</Line>
+<Line Number="150">
+<![CDATA[	CurrentByte := CurrentByte + 3;	// Increment the current byte past the block]]>
+</Line>
+<Line Number="151">
+<![CDATA[END_IF;]]>
+</Line>
+<Line Number="152">
+<![CDATA[]]>
+</Line>
+<Line Number="153">
+<![CDATA[/* Section 7 - Parse PDU Error Index Block]]>
+</Line>
+<Line Number="154">
+<![CDATA[Format is:]]>
+</Line>
+<Line Number="155">
+<![CDATA[ [0] Error Index Type]]>
+</Line>
+<Line Number="156">
+<![CDATA[ [1] Error Index Length]]>
+</Line>
+<Line Number="157">
+<![CDATA[ [2] Error Index Value]]>
+</Line>
+<Line Number="158">
+<![CDATA[*/]]>
+</Line>
+<Line Number="159">
+<![CDATA[IF NOT Response_Invalid_Flag THEN]]>
+</Line>
+<Line Number="160">
+<![CDATA[	IF Packet[CurrentByte] <> 16#02 THEN				// If the Error Index is not an Integer THEN]]>
+</Line>
+<Line Number="161">
+<![CDATA[		Response_Invalid_Flag := 1;							// Throw an Invalid Resposne flag]]>
+</Line>
+<Line Number="162">
+<![CDATA[		Response_Invalid_Location := CurrentByte;			// Record the position of the Invalid Response]]>
+</Line>
+<Line Number="163">
+<![CDATA[		Response_Invalid_Section := 701;		// Note the Section of invalid data]]>
+</Line>
+<Line Number="164">
+<![CDATA[	ELSIF Packet[CurrentByte + 1] <> 16#01 THEN			// If the Error Index is not 1 THEN]]>
+</Line>
+<Line Number="165">
+<![CDATA[		Response_Invalid_Flag := 1;							// Throw an Invalid Resposne flag]]>
+</Line>
+<Line Number="166">
+<![CDATA[		Response_Invalid_Location := CurrentByte + 1;		// Record the position of the Invalid Response]]>
+</Line>
+<Line Number="167">
+<![CDATA[		Response_Invalid_Section := 702;					// Note the Section of invalid data]]>
+</Line>
+<Line Number="168">
+<![CDATA[	ELSE												// If no errors have been found]]>
+</Line>
+<Line Number="169">
+<![CDATA[		//SNMP_Response_Error_Index_Value := Packet[CurrentByte + 2];	//Don't bother recording the Error Index Value - it will always be 1 in our implementation]]>
+</Line>
+<Line Number="170">
+<![CDATA[	END_IF;]]>
+</Line>
+<Line Number="171">
+<![CDATA[	CurrentByte := CurrentByte + 3;	// Increment the current byte past the block]]>
+</Line>
+<Line Number="172">
+<![CDATA[END_IF;]]>
+</Line>
+<Line Number="173">
+<![CDATA[]]>
+</Line>
+<Line Number="174">
+<![CDATA[/* Section 8 - Parse the VarBind List]]>
+</Line>
+<Line Number="175">
+<![CDATA[Format is:]]>
+</Line>
+<Line Number="176">
+<![CDATA[ [0] Varbind List Type]]>
+</Line>
+<Line Number="177">
+<![CDATA[ [1] Varbind List Length]]>
+</Line>
+<Line Number="178">
+<![CDATA[ [2-n] Varbind Type]]>
+</Line>
+<Line Number="179">
+<![CDATA[*/]]>
+</Line>
+<Line Number="180">
+<![CDATA[IF NOT Response_Invalid_Flag THEN]]>
+</Line>
+<Line Number="181">
+<![CDATA[	IF Packet[CurrentByte] <> 16#30 THEN				// If the VarBind List Type is not a Sequence THEN]]>
+</Line>
+<Line Number="182">
+<![CDATA[		Response_Invalid_Flag := 1;							// Throw an Invalid Resposne flag]]>
+</Line>
+<Line Number="183">
+<![CDATA[		Response_Invalid_Location := CurrentByte;			// Record the position of the Invalid Response]]>
+</Line>
+<Line Number="184">
+<![CDATA[		Response_Invalid_Section := 801;				// Note the Section of invalid data]]>
+</Line>
+<Line Number="185">
+<![CDATA[	ELSE												// If no errors have been found]]>
+</Line>
+<Line Number="186">
+<![CDATA[		SNMP_VarBind_List_Length := Packet[CurrentByte + 1];	// Record the VarBind List Length]]>
+</Line>
+<Line Number="187">
+<![CDATA[	END_IF;]]>
+</Line>
+<Line Number="188">
+<![CDATA[	CurrentByte := CurrentByte + 2;						// Increment the current byte past the block]]>
+</Line>
+<Line Number="189">
+<![CDATA[END_IF;]]>
+</Line>
+<Line Number="190">
+<![CDATA[]]>
+</Line>
+<Line Number="191">
+<![CDATA[/* Section 9 - Parse the VarBind Type]]>
+</Line>
+<Line Number="192">
+<![CDATA[Format is:]]>
+</Line>
+<Line Number="193">
+<![CDATA[ [0] Varbind Type]]>
+</Line>
+<Line Number="194">
+<![CDATA[ [1] Varbind Length]]>
+</Line>
+<Line Number="195">
+<![CDATA[ [2-n] Object Identifier (OID)]]>
+</Line>
+<Line Number="196">
+<![CDATA[ [n+1-m] Value]]>
+</Line>
+<Line Number="197">
+<![CDATA[*/]]>
+</Line>
+<Line Number="198">
+<![CDATA[IF NOT Response_Invalid_Flag THEN]]>
+</Line>
+<Line Number="199">
+<![CDATA[	IF Packet[CurrentByte] <> 16#30 THEN				// If the VarBind Type is not a Sequence THEN]]>
+</Line>
+<Line Number="200">
+<![CDATA[		Response_Invalid_Flag := 1;							// Throw an Invalid Resposne flag]]>
+</Line>
+<Line Number="201">
+<![CDATA[		Response_Invalid_Location := CurrentByte;			// Record the position of the Invalid Response]]>
+</Line>
+<Line Number="202">
+<![CDATA[		Response_Invalid_Section := 901;					// Note the Section of invalid data]]>
+</Line>
+<Line Number="203">
+<![CDATA[	ELSE												// If no errors have been found]]>
+</Line>
+<Line Number="204">
+<![CDATA[		SNMP_VarBind_Length := Packet[CurrentByte + 1];	// Record the VarBind Length]]>
+</Line>
+<Line Number="205">
+<![CDATA[	END_IF;]]>
+</Line>
+<Line Number="206">
+<![CDATA[	CurrentByte := CurrentByte + 2;						// Increment the current byte past the block]]>
+</Line>
+<Line Number="207">
+<![CDATA[END_IF;]]>
+</Line>
+<Line Number="208">
+<![CDATA[]]>
+</Line>
+<Line Number="209">
+<![CDATA[/* Section 10 - Parse The OID block]]>
+</Line>
+<Line Number="210">
+<![CDATA[Format is:]]>
+</Line>
+<Line Number="211">
+<![CDATA[ [0] OID Type]]>
+</Line>
+<Line Number="212">
+<![CDATA[ [1] OID Length]]>
+</Line>
+<Line Number="213">
+<![CDATA[ [2-n] OID Value]]>
+</Line>
+<Line Number="214">
+<![CDATA[*/]]>
+</Line>
+<Line Number="215">
+<![CDATA[/* Note: OID integers are encoded in 7-bit, with bit 8 encoded as 'More' signal.]]>
+</Line>
+<Line Number="216">
+<![CDATA[Practically, this means if the value in the OID is over 127, encode the first 7 bits, then move the next 7 bits to the next byte.]]>
+</Line>
+<Line Number="217">
+<![CDATA[This program has a limitation of a 2-byte value, to keep things simple, so the max value of any number in the OID is 32767.]]>
+</Line>
+<Line Number="218">
+<![CDATA[*/]]>
+</Line>
+<Line Number="219">
+<![CDATA[IF NOT Response_Invalid_Flag THEN]]>
+</Line>
+<Line Number="220">
+<![CDATA[	IF Packet[CurrentByte] <> 16#06 THEN				// If the Packet Type is not an OID THEN]]>
+</Line>
+<Line Number="221">
+<![CDATA[		Response_Invalid_Flag := 1;							// Throw an Invalid Resposne flag]]>
+</Line>
+<Line Number="222">
+<![CDATA[		Response_Invalid_Location := CurrentByte;			// Record the position of the Invalid Response]]>
+</Line>
+<Line Number="223">
+<![CDATA[		Response_Invalid_Section := 1001;					// Note the Section of invalid data]]>
+</Line>
+<Line Number="224">
+<![CDATA[	ELSE												// If no errors have been found]]>
+</Line>
+<Line Number="225">
+<![CDATA[		SNMP_OID_Length := Packet[CurrentByte + 1];			// Record the VarBind Length]]>
+</Line>
+<Line Number="226">
+<![CDATA[		CurrentByte := CurrentByte + 2;						// Increment the current byte past the block]]>
+</Line>
+<Line Number="227">
+<![CDATA[]]>
+</Line>
+<Line Number="228">
+<![CDATA[		// OID Parsing Section]]>
+</Line>
+<Line Number="229">
+<![CDATA[		SNMP_OID_Invalid_Flag := 0;		// Reset the OID Invalid Flag]]>
+</Line>
+<Line Number="230">
+<![CDATA[		IF SNMP_OID_Length < 2 THEN 				// If we do not have enough fields in the OID, (at least 1.3.x)]]>
+</Line>
+<Line Number="231">
+<![CDATA[			SNMP_OID_Invalid_Flag := 1;				// Flag the OID string as invalid]]>
+</Line>
+<Line Number="232">
+<![CDATA[		ELSIF NOT SNMP_OID_Invalid_Flag THEN		// If the OID string is so far valid]]>
+</Line>
+<Line Number="233">
+<![CDATA[			FOR I := 0 TO OID.LEN DO				// Clear the old OID string]]>
+</Line>
+<Line Number="234">
+<![CDATA[				OID.DATA[I] := 0;]]>
+</Line>
+<Line Number="235">
+<![CDATA[			END_FOR;]]>
+</Line>
+<Line Number="236">
+<![CDATA[			OID.LEN := 0;]]>
+</Line>
+<Line Number="237">
+<![CDATA[			FOR I := 0 TO SNMP_OID_Length - 1 BY 1 DO		// Parse through detected OID integers.]]>
+</Line>
+<Line Number="238">
+<![CDATA[				IF I = 0 THEN 								// If we are on the first byte]]>
+</Line>
+<Line Number="239">
+<![CDATA[					IF Packet[CurrentByte + I] = 16#2b THEN	// If the first byte is 2B (1.3 specially encoded)]]>
+</Line>
+<Line Number="240">
+<![CDATA[						CONCAT(OID,String_1_3,OID);				// Add 1.3. to the OID string]]>
+</Line>
+<Line Number="241">
+<![CDATA[						CONCAT(OID,String_Period,OID); 			// Add a '.' to the OID	]]>
+</Line>
+<Line Number="242">
+<![CDATA[					ELSE									// Otherwise we cannot parse the OID properly]]>
+</Line>
+<Line Number="243">
+<![CDATA[						SNMP_OID_Invalid_Flag := 1;					// Flag the OID string as invalid]]>
+</Line>
+<Line Number="244">
+<![CDATA[					END_IF;					]]>
+</Line>
+<Line Number="245">
+<![CDATA[				ELSIF NOT SNMP_OID_Invalid_Flag THEN				// If we are no longer on the first byte, and the OID is so far valid]]>
+</Line>
+<Line Number="246">
+<![CDATA[					IF Packet[CurrentByte + I] < 127 AND Packet[CurrentByte + I] >= 0 THEN		// If our current byte has no Next bit]]>
+</Line>
+<Line Number="247">
+<![CDATA[						DTOS(Packet[CurrentByte + I],TEMP_STRING);									// Convert it to a string]]>
+</Line>
+<Line Number="248">
+<![CDATA[						CONCAT(OID,TEMP_STRING,OID);												// Add it to the OID]]>
+</Line>
+<Line Number="249">
+<![CDATA[						CONCAT(OID,String_Period,OID); 												// Add a '.' to the OID]]>
+</Line>
+<Line Number="250">
+<![CDATA[					ELSE												// If the byte has a Next bit (2+ bit number)]]>
+</Line>
+<Line Number="251">
+<![CDATA[						IF Packet[CurrentByte + I + 1].7 THEN				// If the next byte also has a Next bit... (3+ bit number)]]>
+</Line>
+<Line Number="252">
+<![CDATA[							IF Packet[CurrentByte + I + 2].7 THEN				// If the next next byte also has a next bit... (4+ bit number)]]>
+</Line>
+<Line Number="253">
+<![CDATA[								IF Packet[CurrentByte + I + 3].7 THEN				// If the next byte also has a next bit... (5+ bit number)]]>
+</Line>
+<Line Number="254">
+<![CDATA[									SNMP_OID_Invalid_Flag := 1;					]]>
+</Line>
+<Line Number="255">
+<![CDATA[								ELSE											// We have a 4 byte number]]>
+</Line>
+<Line Number="256">
+<![CDATA[									TEMP_DINT.0 := Packet[CurrentByte + I + 3].0;]]>
+</Line>
+<Line Number="257">
+<![CDATA[									TEMP_DINT.1 := Packet[CurrentByte + I + 3].1;]]>
+</Line>
+<Line Number="258">
+<![CDATA[									TEMP_DINT.2 := Packet[CurrentByte + I + 3].2;]]>
+</Line>
+<Line Number="259">
+<![CDATA[									TEMP_DINT.3 := Packet[CurrentByte + I + 3].3;]]>
+</Line>
+<Line Number="260">
+<![CDATA[									TEMP_DINT.4 := Packet[CurrentByte + I + 3].4;]]>
+</Line>
+<Line Number="261">
+<![CDATA[									TEMP_DINT.5 := Packet[CurrentByte + I + 3].5;]]>
+</Line>
+<Line Number="262">
+<![CDATA[									TEMP_DINT.6 := Packet[CurrentByte + I + 3].6;																							// If our current byte has a next bit]]>
+</Line>
+<Line Number="263">
+<![CDATA[									TEMP_DINT.7 := Packet[CurrentByte + I + 2].0;]]>
+</Line>
+<Line Number="264">
+<![CDATA[									TEMP_DINT.8 := Packet[CurrentByte + I + 2].1;]]>
+</Line>
+<Line Number="265">
+<![CDATA[									TEMP_DINT.9 := Packet[CurrentByte + I + 2].2;]]>
+</Line>
+<Line Number="266">
+<![CDATA[									TEMP_DINT.10 := Packet[CurrentByte + I + 2].3;]]>
+</Line>
+<Line Number="267">
+<![CDATA[									TEMP_DINT.11 := Packet[CurrentByte + I + 2].4;]]>
+</Line>
+<Line Number="268">
+<![CDATA[									TEMP_DINT.12 := Packet[CurrentByte + I + 2].5;]]>
+</Line>
+<Line Number="269">
+<![CDATA[									TEMP_DINT.13 := Packet[CurrentByte + I + 2].6;]]>
+</Line>
+<Line Number="270">
+<![CDATA[									TEMP_DINT.14 := Packet[CurrentByte + I + 1].0;]]>
+</Line>
+<Line Number="271">
+<![CDATA[									TEMP_DINT.15 := Packet[CurrentByte + I + 1].1;]]>
+</Line>
+<Line Number="272">
+<![CDATA[									TEMP_DINT.16 := Packet[CurrentByte + I + 1].2;]]>
+</Line>
+<Line Number="273">
+<![CDATA[									TEMP_DINT.17 := Packet[CurrentByte + I + 1].3;]]>
+</Line>
+<Line Number="274">
+<![CDATA[									TEMP_DINT.18 := Packet[CurrentByte + I + 1].4;]]>
+</Line>
+<Line Number="275">
+<![CDATA[									TEMP_DINT.19 := Packet[CurrentByte + I + 1].5;]]>
+</Line>
+<Line Number="276">
+<![CDATA[									TEMP_DINT.20 := Packet[CurrentByte + I + 1].6;]]>
+</Line>
+<Line Number="277">
+<![CDATA[									TEMP_DINT.21 := Packet[CurrentByte + I].0;]]>
+</Line>
+<Line Number="278">
+<![CDATA[									TEMP_DINT.22 := Packet[CurrentByte + I].1;]]>
+</Line>
+<Line Number="279">
+<![CDATA[									TEMP_DINT.23 := Packet[CurrentByte + I].2;]]>
+</Line>
+<Line Number="280">
+<![CDATA[									TEMP_DINT.24 := Packet[CurrentByte + I].3;]]>
+</Line>
+<Line Number="281">
+<![CDATA[									TEMP_DINT.25 := Packet[CurrentByte + I].4;]]>
+</Line>
+<Line Number="282">
+<![CDATA[									TEMP_DINT.26 := Packet[CurrentByte + I].5;]]>
+</Line>
+<Line Number="283">
+<![CDATA[									TEMP_DINT.27 := Packet[CurrentByte + I].6;]]>
+</Line>
+<Line Number="284">
+<![CDATA[									DTOS(TEMP_DINT,TEMP_STRING);				// Convert the temp DINT to a string]]>
+</Line>
+<Line Number="285">
+<![CDATA[									CONCAT(OID,TEMP_STRING,OID);					// Add it to the OID]]>
+</Line>
+<Line Number="286">
+<![CDATA[									CONCAT(OID,String_Period,OID); 					// Add a '.' to the OID]]>
+</Line>
+<Line Number="287">
+<![CDATA[									I := I + 3;										// Skip the next byte]]>
+</Line>
+<Line Number="288">
+<![CDATA[								END_IF;]]>
+</Line>
+<Line Number="289">
+<![CDATA[							ELSE											// We have 3 byte number]]>
+</Line>
+<Line Number="290">
+<![CDATA[								TEMP_DINT.0 := Packet[CurrentByte + I + 2].0;]]>
+</Line>
+<Line Number="291">
+<![CDATA[								TEMP_DINT.1 := Packet[CurrentByte + I + 2].1;]]>
+</Line>
+<Line Number="292">
+<![CDATA[								TEMP_DINT.2 := Packet[CurrentByte + I + 2].2;]]>
+</Line>
+<Line Number="293">
+<![CDATA[								TEMP_DINT.3 := Packet[CurrentByte + I + 2].3;]]>
+</Line>
+<Line Number="294">
+<![CDATA[								TEMP_DINT.4 := Packet[CurrentByte + I + 2].4;]]>
+</Line>
+<Line Number="295">
+<![CDATA[								TEMP_DINT.5 := Packet[CurrentByte + I + 2].5;]]>
+</Line>
+<Line Number="296">
+<![CDATA[								TEMP_DINT.6 := Packet[CurrentByte + I + 2].6;]]>
+</Line>
+<Line Number="297">
+<![CDATA[								TEMP_DINT.7 := Packet[CurrentByte + I + 1].0;]]>
+</Line>
+<Line Number="298">
+<![CDATA[								TEMP_DINT.8 := Packet[CurrentByte + I + 1].1;]]>
+</Line>
+<Line Number="299">
+<![CDATA[								TEMP_DINT.9 := Packet[CurrentByte + I + 1].2;]]>
+</Line>
+<Line Number="300">
+<![CDATA[								TEMP_DINT.10 := Packet[CurrentByte + I + 1].3;]]>
+</Line>
+<Line Number="301">
+<![CDATA[								TEMP_DINT.11 := Packet[CurrentByte + I + 1].4;]]>
+</Line>
+<Line Number="302">
+<![CDATA[								TEMP_DINT.12 := Packet[CurrentByte + I + 1].5;]]>
+</Line>
+<Line Number="303">
+<![CDATA[								TEMP_DINT.13 := Packet[CurrentByte + I + 1].6;																							// If our current byte has a next bit]]>
+</Line>
+<Line Number="304">
+<![CDATA[								TEMP_DINT.14 := Packet[CurrentByte + I].0;]]>
+</Line>
+<Line Number="305">
+<![CDATA[								TEMP_DINT.15 := Packet[CurrentByte + I].1;]]>
+</Line>
+<Line Number="306">
+<![CDATA[								TEMP_DINT.16 := Packet[CurrentByte + I].2;]]>
+</Line>
+<Line Number="307">
+<![CDATA[								TEMP_DINT.17 := Packet[CurrentByte + I].3;]]>
+</Line>
+<Line Number="308">
+<![CDATA[								TEMP_DINT.18 := Packet[CurrentByte + I].4;]]>
+</Line>
+<Line Number="309">
+<![CDATA[								TEMP_DINT.19 := Packet[CurrentByte + I].5;]]>
+</Line>
+<Line Number="310">
+<![CDATA[								TEMP_DINT.20 := Packet[CurrentByte + I].6;]]>
+</Line>
+<Line Number="311">
+<![CDATA[								DTOS(TEMP_DINT,TEMP_STRING);				// Convert the temp DINT to a string]]>
+</Line>
+<Line Number="312">
+<![CDATA[								CONCAT(OID,TEMP_STRING,OID);					// Add it to the OID]]>
+</Line>
+<Line Number="313">
+<![CDATA[								CONCAT(OID,String_Period,OID); 					// Add a '.' to the OID]]>
+</Line>
+<Line Number="314">
+<![CDATA[								I := I + 2;										// Skip the next byte]]>
+</Line>
+<Line Number="315">
+<![CDATA[							END_IF;					]]>
+</Line>
+<Line Number="316">
+<![CDATA[						ELSE												// We have a 2 byte number - copy the next two bytes of data into a temp DINT]]>
+</Line>
+<Line Number="317">
+<![CDATA[							TEMP_DINT.0 := Packet[CurrentByte + I + 1].0;]]>
+</Line>
+<Line Number="318">
+<![CDATA[							TEMP_DINT.1 := Packet[CurrentByte + I + 1].1;]]>
+</Line>
+<Line Number="319">
+<![CDATA[							TEMP_DINT.2 := Packet[CurrentByte + I + 1].2;]]>
+</Line>
+<Line Number="320">
+<![CDATA[							TEMP_DINT.3 := Packet[CurrentByte + I + 1].3;]]>
+</Line>
+<Line Number="321">
+<![CDATA[							TEMP_DINT.4 := Packet[CurrentByte + I + 1].4;]]>
+</Line>
+<Line Number="322">
+<![CDATA[							TEMP_DINT.5 := Packet[CurrentByte + I + 1].5;]]>
+</Line>
+<Line Number="323">
+<![CDATA[							TEMP_DINT.6 := Packet[CurrentByte + I + 1].6;																							// If our current byte has a next bit]]>
+</Line>
+<Line Number="324">
+<![CDATA[							TEMP_DINT.7 := Packet[CurrentByte + I].0;]]>
+</Line>
+<Line Number="325">
+<![CDATA[							TEMP_DINT.8 := Packet[CurrentByte + I].1;]]>
+</Line>
+<Line Number="326">
+<![CDATA[							TEMP_DINT.9 := Packet[CurrentByte + I].2;]]>
+</Line>
+<Line Number="327">
+<![CDATA[							TEMP_DINT.10 := Packet[CurrentByte + I].3;]]>
+</Line>
+<Line Number="328">
+<![CDATA[							TEMP_DINT.11 := Packet[CurrentByte + I].4;]]>
+</Line>
+<Line Number="329">
+<![CDATA[							TEMP_DINT.12 := Packet[CurrentByte + I].5;]]>
+</Line>
+<Line Number="330">
+<![CDATA[							TEMP_DINT.13 := Packet[CurrentByte + I].6;]]>
+</Line>
+<Line Number="331">
+<![CDATA[							DTOS(TEMP_DINT,TEMP_STRING);				// Convert the temp DINT to a string]]>
+</Line>
+<Line Number="332">
+<![CDATA[							CONCAT(OID,TEMP_STRING,OID);					// Add it to the OID]]>
+</Line>
+<Line Number="333">
+<![CDATA[							CONCAT(OID,String_Period,OID); 					// Add a '.' to the OID]]>
+</Line>
+<Line Number="334">
+<![CDATA[							I := I + 1;										// Skip the next byte]]>
+</Line>
+<Line Number="335">
+<![CDATA[						END_IF;]]>
+</Line>
+<Line Number="336">
+<![CDATA[					END_IF;]]>
+</Line>
+<Line Number="337">
+<![CDATA[				END_IF;]]>
+</Line>
+<Line Number="338">
+<![CDATA[			END_FOR;]]>
+</Line>
+<Line Number="339">
+<![CDATA[		END_IF;]]>
+</Line>
+<Line Number="340">
+<![CDATA[		CurrentByte := CurrentByte + SNMP_OID_Length;					// Add the OID length to the current byte]]>
+</Line>
+<Line Number="341">
+<![CDATA[	END_IF;]]>
+</Line>
+<Line Number="342">
+<![CDATA[END_IF;]]>
+</Line>
+<Line Number="343">
+<![CDATA[]]>
+</Line>
+<Line Number="344">
+<![CDATA[/* Create the Value block]]>
+</Line>
+<Line Number="345">
+<![CDATA[Format is:]]>
+</Line>
+<Line Number="346">
+<![CDATA[ [0] Type]]>
+</Line>
+<Line Number="347">
+<![CDATA[ [1] Length]]>
+</Line>
+<Line Number="348">
+<![CDATA[ [2-n] Value (if Type is not Null)]]>
+</Line>
+<Line Number="349">
+<![CDATA[*/]]>
+</Line>
+<Line Number="350">
+<![CDATA[IF NOT Response_Invalid_Flag THEN]]>
+</Line>
+<Line Number="351">
+<![CDATA[	Output_Type := Packet[CurrentByte];		]]>
+</Line>
+<Line Number="352">
+<![CDATA[	SNMP_Output_Length := Packet[CurrentByte + 1];]]>
+</Line>
+<Line Number="353">
+<![CDATA[	FOR I := 0 TO 81 DO					// Clear the old string]]>
+</Line>
+<Line Number="354">
+<![CDATA[		Output_String.DATA[I] := 0;]]>
+</Line>
+<Line Number="355">
+<![CDATA[	END_FOR;]]>
+</Line>
+<Line Number="356">
+<![CDATA[	Output_String.LEN := 0;]]>
+</Line>
+<Line Number="357">
+<![CDATA[	Output_DINT := 0;]]>
+</Line>
+<Line Number="358">
+<![CDATA[]]>
+</Line>
+<Line Number="359">
+<![CDATA[	// Integer32 values need to reverse byte order.]]>
+</Line>
+<Line Number="360">
+<![CDATA[	IF Output_Type = 16#02 OR Output_Type = 16#42 THEN				// If the Value Type is an Int32 (02) or Counter (42) THEN]]>
+</Line>
+<Line Number="361">
+<![CDATA[		IF SNMP_Output_Length <= 4 THEN]]>
+</Line>
+<Line Number="362">
+<![CDATA[			FOR I := 0 TO 3 DO					// Clear the temporary SINT array]]>
+</Line>
+<Line Number="363">
+<![CDATA[				TEMP_SINT_ARRAY[I] := 0;]]>
+</Line>
+<Line Number="364">
+<![CDATA[			END_FOR;	]]>
+</Line>
+<Line Number="365">
+<![CDATA[			FOR I := 0 TO SNMP_Output_Length - 1 DO	// Copy the bytes to the temp array in reverse order]]>
+</Line>
+<Line Number="366">
+<![CDATA[				COP(Packet[CurrentByte + 2 + I],TEMP_SINT_ARRAY[SNMP_Output_Length - I - 1],1);]]>
+</Line>
+<Line Number="367">
+<![CDATA[			END_FOR;]]>
+</Line>
+<Line Number="368">
+<![CDATA[			COP(TEMP_SINT_ARRAY[0],Output_DINT,1);	// Copy the temp array to the value]]>
+</Line>
+<Line Number="369">
+<![CDATA[			Output_Is_Integer := 1;					// Set the appropriate output bits]]>
+</Line>
+<Line Number="370">
+<![CDATA[			Output_Is_String := 0;]]>
+</Line>
+<Line Number="371">
+<![CDATA[			Output_Is_Other := 0;]]>
+</Line>
+<Line Number="372">
+<![CDATA[		ELSE							]]>
+</Line>
+<Line Number="373">
+<![CDATA[			Output_Is_Integer := 0;]]>
+</Line>
+<Line Number="374">
+<![CDATA[			Output_Is_String := 0;]]>
+</Line>
+<Line Number="375">
+<![CDATA[			Output_Is_Other := 1;]]>
+</Line>
+<Line Number="376">
+<![CDATA[		END_IF;]]>
+</Line>
+<Line Number="377">
+<![CDATA[	ELSIF Output_Type = 16#04 THEN			// If the Value type is a String (04) THEN]]>
+</Line>
+<Line Number="378">
+<![CDATA[		Output_String.LEN := SNMP_Output_Length;]]>
+</Line>
+<Line Number="379">
+<![CDATA[		COP(Packet[CurrentByte + 2],Output_String.DATA[0],SNMP_Output_Length);	// Copy the string data]]>
+</Line>
+<Line Number="380">
+<![CDATA[		Output_Is_Integer := 0;				// Set the appropriate output bits]]>
+</Line>
+<Line Number="381">
+<![CDATA[		Output_Is_String := 1;]]>
+</Line>
+<Line Number="382">
+<![CDATA[		Output_Is_Other := 0;]]>
+</Line>
+<Line Number="383">
+<![CDATA[	ELSE									// Otherwise the Value cannot be parsed.  Data is available in the packet]]>
+</Line>
+<Line Number="384">
+<![CDATA[		Output_Is_Integer := 0;]]>
+</Line>
+<Line Number="385">
+<![CDATA[		Output_Is_String := 0;]]>
+</Line>
+<Line Number="386">
+<![CDATA[		Output_Is_Other := 1;]]>
+</Line>
+<Line Number="387">
+<![CDATA[	END_IF;]]>
+</Line>
+<Line Number="388">
+<![CDATA[	CurrentByte := CurrentByte + 2;						// Increment the current byte past the block]]>
+</Line>
+<Line Number="389">
+<![CDATA[END_IF;]]>
+</Line>
+<Line Number="390">
+<![CDATA[]]>
+</Line>
+<Line Number="391">
+<![CDATA[Response_Invalid := Response_Invalid_Flag;	// If we have flagged an invalid response in this scan, set the output]]>
+</Line>
+<Line Number="392">
+<![CDATA[]]>
+</Line>
+</STContent>
+</Routine>
+</Routines>
+</AddOnInstructionDefinition>
+</AddOnInstructionDefinitions>
+</Controller>
+</RSLogix5000Content>

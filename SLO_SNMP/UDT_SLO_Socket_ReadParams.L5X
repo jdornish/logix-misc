@@ -1,0 +1,25 @@
+﻿<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<!--Socket Read Parameters-->
+<RSLogix5000Content SchemaRevision="1.0" SoftwareRevision="32.04" TargetName="SLO_Socket_ReadParams" TargetType="DataType" ContainsContext="true" Owner="J. Dornish" ExportDate="Fri Jan 07 08:11:30 2022" ExportOptions="References NoRawData L5KData DecoratedData Context Dependencies ForceProtectedEncoding AllProjDocTrans">
+<Controller Use="Context" Name="EatonSNMP">
+<DataTypes Use="Context">
+<DataType Use="Target" Name="SLO_Socket_ReadParams" Family="NoFamily" Class="User">
+<Description>
+<![CDATA[Socket Read Parameters]]>
+</Description>
+<Members>
+<Member Name="Timeout" DataType="DINT" Dimension="0" Radix="Decimal" Hidden="false" ExternalAccess="Read/Write">
+<Description>
+<![CDATA[Timeout in Milliseconds]]>
+</Description>
+</Member>
+<Member Name="BufLen" DataType="DINT" Dimension="0" Radix="Decimal" Hidden="false" ExternalAccess="Read/Write">
+<Description>
+<![CDATA[Number of Bytes to Receive]]>
+</Description>
+</Member>
+</Members>
+</DataType>
+</DataTypes>
+</Controller>
+</RSLogix5000Content>

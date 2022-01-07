@@ -1,0 +1,43 @@
+﻿<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<!--Data for SLO_SNMP_Packet_Build-->
+<RSLogix5000Content SchemaRevision="1.0" SoftwareRevision="32.04" TargetName="SLO_SNMP_Request_Data" TargetType="DataType" ContainsContext="true" Owner="J. Dornish" ExportDate="Fri Jan 07 08:11:14 2022" ExportOptions="References NoRawData L5KData DecoratedData Context Dependencies ForceProtectedEncoding AllProjDocTrans">
+<Controller Use="Context" Name="EatonSNMP">
+<DataTypes Use="Context">
+<DataType Use="Target" Name="SLO_SNMP_Request_Data" Family="NoFamily" Class="User">
+<Description>
+<![CDATA[Data for SLO_SNMP_Packet_Build]]>
+</Description>
+<Members>
+<Member Name="IP_Address" DataType="STRING" Dimension="0" Radix="NullType" Hidden="false" ExternalAccess="Read/Write">
+<Description>
+<![CDATA[Target IP Address of remote device (e.g. 192.168.20.2).]]>
+</Description>
+</Member>
+<Member Name="Community" DataType="STRING" Dimension="0" Radix="NullType" Hidden="false" ExternalAccess="Read/Write">
+<Description>
+<![CDATA[SNMP Read Community String (e.g. public)]]>
+</Description>
+</Member>
+<Member Name="OID" DataType="STRING" Dimension="0" Radix="NullType" Hidden="false" ExternalAccess="Read/Write">
+<Description>
+<![CDATA[OID String to read (e.g. 1.3.6.1.4.1.534.1.3.4.1.2).  
+Note: OID members can have a max value of 268435455]]>
+</Description>
+</Member>
+<Member Name="RequestID" DataType="SINT" Dimension="0" Radix="Decimal" Hidden="false" ExternalAccess="Read/Write">
+<Description>
+<![CDATA[SNMP Request ID - (Incrementing or random integer) 
+Note: will be converted to unsigned int]]>
+</Description>
+</Member>
+<Member Name="ZZZZZZZZZZSLO_SNMP_R4" DataType="SINT" Dimension="0" Radix="Decimal" Hidden="true" ExternalAccess="Read/Write"/>
+<Member Name="Enabled" DataType="BIT" Dimension="0" Radix="Decimal" Hidden="false" Target="ZZZZZZZZZZSLO_SNMP_R4" BitNumber="0" ExternalAccess="Read/Write">
+<Description>
+<![CDATA[Enable / Disable Flag]]>
+</Description>
+</Member>
+</Members>
+</DataType>
+</DataTypes>
+</Controller>
+</RSLogix5000Content>
